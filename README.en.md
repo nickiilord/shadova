@@ -65,8 +65,9 @@ packages/
 ├── shared/       # Pure authorization functions shared by web and API
 └── config/       # Shared TypeScript and ESLint configuration
 docs/
+├── business/     # Business documentation (authoritative: model/authorization/rules/API/seed)
 ├── database/     # Database portability rules and reference DDL
-└── superpowers/  # Design specification and implementation plan
+└── archive/superpowers/  # Historical design specification and implementation plan (archived)
 ```
 
 ## Authorization Model
@@ -151,8 +152,8 @@ API integration tests rebuild a dedicated SQLite test database and do not modify
 ## Documentation
 
 - [Database and authorization semantics](./docs/database/README.md)
-- [System design specification](./docs/superpowers/specs/2026-08-06-rbac-admin-design.md)
-- [Implementation plan and security amendments](./docs/superpowers/plans/2026-08-06-rbac-admin.md)
+- [Business documentation](./docs/business/README.md)
+- [Historical design specification and implementation plan (archived)](./docs/archive/superpowers/)
 - [Agent development guide](./CLAUDE.md)
 
 ## Contributing

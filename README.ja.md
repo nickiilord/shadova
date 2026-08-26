@@ -65,8 +65,9 @@ packages/
 ├── shared/       # Web/API 共有の認可純粋関数
 └── config/       # 共通 TypeScript / ESLint 設定
 docs/
+├── business/     # 業務ドキュメント（権威: モデル/認可/ルール/API/seed）
 ├── database/     # DB 方言の互換ルールと参照 DDL
-└── superpowers/  # 設計仕様と実装計画
+└── archive/superpowers/  # 過去の設計仕様と実装計画（アーカイブ）
 ```
 
 ## 認可モデル
@@ -151,8 +152,8 @@ API integration テストは専用 SQLite テスト DB を再構築し、開発 
 ## ドキュメント
 
 - [データベースと認可の意味論](./docs/database/README.md)
-- [システム設計仕様](./docs/superpowers/specs/2026-08-06-rbac-admin-design.md)
-- [実装計画とセキュリティ修正](./docs/superpowers/plans/2026-08-06-rbac-admin.md)
+- [業務ドキュメント](./docs/business/README.md)
+- [過去の設計仕様と実装計画（アーカイブ）](./docs/archive/superpowers/)
 - [エージェント開発ガイド](./CLAUDE.md)
 
 ## コントリビューション

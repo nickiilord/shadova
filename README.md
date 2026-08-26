@@ -65,8 +65,9 @@ packages/
 ├── shared/       # 前后端共享的权限纯函数
 └── config/       # 共享 TypeScript / ESLint 配置
 docs/
+├── business/     # 业务文档（权威：领域模型/权限/规则/API/种子）
 ├── database/     # 三方言数据库约定与参考 DDL
-└── superpowers/  # 设计规格与实施计划
+└── archive/superpowers/  # 历史设计规格与实施计划（已归档）
 ```
 
 ## 权限模型
@@ -151,8 +152,8 @@ API 集成测试会重建独立的 SQLite 测试库，不会修改开发数据�
 ## 文档
 
 - [数据库与权限语义](./docs/database/README.md)
-- [系统设计规格](./docs/superpowers/specs/2026-08-06-rbac-admin-design.md)
-- [实施计划与安全修正](./docs/superpowers/plans/2026-08-06-rbac-admin.md)
+- [业务文档](./docs/business/README.md)
+- [历史设计规格与实施计划（归档）](./docs/archive/superpowers/)
 - [智能体开发指南](./CLAUDE.md)
 
 ## 参与贡献

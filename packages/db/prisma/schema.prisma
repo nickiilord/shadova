@@ -1,6 +1,6 @@
 // 数据库权威 schema（三方言可移植：SQLite / MySQL / PostgreSQL）
 // 全字段中文 docstring 为强制规范，须与 docs/database/schema.sql（Task 5，MySQL DDL）双源同步
-// 三方言约定见 docs/superpowers/specs/2026-08-06-rbac-admin-design.md §11：不用 Prisma enum，字符串 + zod 校验
+// 三方言约定见 docs/business/README.md §8：不用 Prisma enum，字符串 + zod 校验
 
 generator client {
   provider = "prisma-client-js"

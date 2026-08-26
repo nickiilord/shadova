@@ -12,7 +12,7 @@
 - 按钮（BUTTON）同样参与交集，仅用于页面内按钮显隐
 - 导航规则：祖先目录补全显示（保证可达性）；无可见子孙的目录自动折叠
 
-详细定义见 docs/superpowers/specs/2026-08-06-rbac-admin-design.md §6
+详细定义见 [docs/business/README.md §3 权限模型](../business/README.md)
 
 ## 三方言差异说明
 
