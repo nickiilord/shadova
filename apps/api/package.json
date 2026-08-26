@@ -10,7 +10,7 @@
     "test": "vitest run",
     "lint": "eslint src test scripts",
     "typecheck": "tsc --noEmit",
-    "generate:openapi": "tsx scripts/generate-openapi.ts",
+    "generate:openapi": "pnpm --filter @repo/shared build && pnpm --filter @repo/db build && tsx scripts/generate-openapi.ts",
     "generate:types": "openapi-typescript openapi.json -o ../web/src/api/schema.d.ts"
   },
   "dependencies": {
