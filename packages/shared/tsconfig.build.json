@@ -1,0 +1,5 @@
+{
+  "extends": "@repo/config/tsconfig.base.json",
+  "compilerOptions": { "lib": ["ES2022"], "rootDir": "src", "outDir": "dist", "declaration": true },
+  "include": ["src"]
+}

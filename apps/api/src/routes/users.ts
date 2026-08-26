@@ -1,6 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import type { Prisma } from "@repo/db"
+import { PERMISSIONS } from "@repo/shared"
 import { prisma } from "@repo/db"
 import { HttpError, badRequest, notFound } from "../lib/http-error.js"
 import type { AppConfig } from "../config.js"
@@ -10,6 +11,7 @@ import { p2002Conflict } from "../lib/prisma-error.js"
 import { errorBodySchema, idParamSchema, importResultSchema, userDetailSchema, userPageResultSchema } from "../lib/schemas.js"
 import { parseCsv, toCsv } from "../lib/csv.js"
 import { authenticate, requirePermission } from "../middleware/auth.js"
+import { getUserDetail, toUserDetail } from "../services/user-service.js"
 
 const pageQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -129,33 +131,6 @@ async function resolveRoleIds(tx: Prisma.TransactionClient, roleIds: string[]): 
 }
 
 /** 用户详情（含已挂角色与部门名）；不存在 → 404 */
-async function fetchUserDetail(id: string) {
-  const user = await prisma.user.findUnique({
-    where: { id },
-    include: { roles: { include: { role: true } }, department: { select: { id: true, nameZh: true, nameEn: true } } },
-  })
-  if (!user) throw notFound("用户不存在")
-  return user
-}
-
-type UserDetail = Awaited<ReturnType<typeof fetchUserDetail>>
-
-function toUserDetail(user: UserDetail) {
-  return {
-    id: user.id,
-    username: user.username,
-    nickname: user.nickname,
-    email: user.email,
-    telephone: user.telephone,
-    avatar: user.avatar,
-    department: user.department
-      ? { id: user.department.id, nameZh: user.department.nameZh, nameEn: user.department.nameEn }
-      : null,
-    status: user.status,
-    createdAt: user.createdAt,
-    roles: user.roles.map((r) => ({ id: r.role.id, nameZh: r.role.nameZh, nameEn: r.role.nameEn, code: r.role.code })),
-  }
-}
 
 export function userRoutes(cfg: AppConfig): OpenAPIHono {
   const app = createSubApp()
@@ -164,7 +139,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/users",
-      middleware: [authenticate(cfg), requirePermission("system:user:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userQuery)],
       security: bearerSecurity,
       request: { query: pageQuery },
       responses: {
@@ -206,7 +181,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/users",
-      middleware: [authenticate(cfg), requirePermission("system:user:create")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userCreate)],
       security: bearerSecurity,
       request: { body: { content: { "application/json": { schema: userCreateSchema } } } },
       responses: {
@@ -239,7 +214,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
           }
           return created
         })
-        return c.json({ code: 0, data: toUserDetail(await fetchUserDetail(user.id)), message: "ok" }, 200)
+        return c.json({ code: 0, data: toUserDetail(await getUserDetail(user.id)), message: "ok" }, 200)
       } catch (err) {
         const hit = p2002Conflict(err, USER_UNIQUE_FIELDS)
         if (hit !== null) throw new HttpError(409, hit.code, hit.message)
@@ -254,7 +229,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/users/export",
-      middleware: [authenticate(cfg), requirePermission("system:user:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userQuery)],
       security: bearerSecurity,
       request: { query: z.object({ keyword: z.string().optional() }) },
       responses: {
@@ -307,7 +282,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/users/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:user:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userQuery)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -319,7 +294,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     }),
     async (c) => {
       const { id } = c.req.valid("param")
-      return c.json({ code: 0, data: toUserDetail(await fetchUserDetail(id)), message: "ok" }, 200)
+      return c.json({ code: 0, data: toUserDetail(await getUserDetail(id)), message: "ok" }, 200)
     },
   )
 
@@ -350,7 +325,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
       if (avatar !== undefined) data.avatar = avatar
       try {
         await prisma.user.update({ where: { id: userId }, data })
-        return c.json({ code: 0, data: toUserDetail(await fetchUserDetail(userId)), message: "ok" }, 200)
+        return c.json({ code: 0, data: toUserDetail(await getUserDetail(userId)), message: "ok" }, 200)
       } catch (err) {
         const hit = p2002Conflict(err, USER_UNIQUE_FIELDS)
         if (hit !== null) throw new HttpError(409, hit.code, hit.message)
@@ -363,7 +338,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "patch",
       path: "/api/users/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:user:update")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userUpdate)],
       security: bearerSecurity,
       request: { params: idParamSchema, body: { content: { "application/json": { schema: userUpdateSchema } } } },
       responses: {
@@ -378,7 +353,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     async (c) => {
       const { id } = c.req.valid("param")
       const { roleIds, password, ...fields } = c.req.valid("json")
-      await fetchUserDetail(id)
+      await getUserDetail(id)
       const data: Prisma.UserUpdateInput = {}
       if (fields.username !== undefined) data.username = fields.username.toLowerCase()
       if (fields.nickname !== undefined) data.nickname = fields.nickname
@@ -410,7 +385,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
         } else {
           await prisma.user.update({ where: { id }, data })
         }
-        return c.json({ code: 0, data: toUserDetail(await fetchUserDetail(id)), message: "ok" }, 200)
+        return c.json({ code: 0, data: toUserDetail(await getUserDetail(id)), message: "ok" }, 200)
       } catch (err) {
         const hit = p2002Conflict(err, USER_UNIQUE_FIELDS)
         if (hit !== null) throw new HttpError(409, hit.code, hit.message)
@@ -423,7 +398,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "delete",
       path: "/api/users/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:user:delete")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userDelete)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -449,7 +424,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "put",
       path: "/api/users/{id}/roles",
-      middleware: [authenticate(cfg), requirePermission("system:user:assign-role")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userAssignRole)],
       security: bearerSecurity,
       request: { params: idParamSchema, body: { content: { "application/json": { schema: roleIdsSchema } } } },
       responses: {
@@ -463,7 +438,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     async (c) => {
       const { id } = c.req.valid("param")
       const { roleIds } = c.req.valid("json")
-      await fetchUserDetail(id)
+      await getUserDetail(id)
       // 统一交互式事务风格：校验（tx.role.count）+ 全量替换同一事务内
       await prisma.$transaction(async (tx) => {
         const roles = await resolveRoleIds(tx, roleIds)
@@ -472,7 +447,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
           await tx.userRole.createMany({ data: roles.map((roleId) => ({ userId: id, roleId })) })
         }
       })
-      return c.json({ code: 0, data: toUserDetail(await fetchUserDetail(id)), message: "ok" }, 200)
+      return c.json({ code: 0, data: toUserDetail(await getUserDetail(id)), message: "ok" }, 200)
     },
   )
 
@@ -481,7 +456,7 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/users/import",
-      middleware: [authenticate(cfg), requirePermission("system:user:create")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userCreate)],
       security: bearerSecurity,
       request: {
         body: {

@@ -4,7 +4,7 @@ import { beforeAll } from "vitest"
 
 // 模块级设置：setup 文件先于测试文件模块加载，PrismaClient 构造时即读取 DATABASE_URL，
 // 若在 beforeAll 里再设，client 已绑定 packages/db/.env 的 dev.db（测试误写 dev 库根因）
-const testDbUrl = process.env.TEST_DATABASE_URL ?? "file:./test.db"
+const testDbUrl = process.env.TEST_DATABASE_URL ?? `file:./test-${String(process.pid)}.db`
 process.env.DATABASE_URL = testDbUrl
 
 beforeAll(() => {

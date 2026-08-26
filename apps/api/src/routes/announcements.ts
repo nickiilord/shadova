@@ -1,6 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import type { Prisma } from "@repo/db"
+import { PERMISSIONS } from "@repo/shared"
 import { prisma } from "@repo/db"
 import { notFound } from "../lib/http-error.js"
 import type { AppConfig } from "../config.js"
@@ -59,7 +60,7 @@ export function announcementRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/announcements",
-      middleware: [authenticate(cfg), requirePermission("system:announcement:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.announcementQuery)],
       security: bearerSecurity,
       request: { query: pageQuery },
       responses: {
@@ -108,7 +109,7 @@ export function announcementRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/announcements",
-      middleware: [authenticate(cfg), requirePermission("system:announcement:create")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.announcementCreate)],
       security: bearerSecurity,
       request: { body: { content: { "application/json": { schema: announcementCreateSchema } } } },
       responses: {
@@ -131,7 +132,7 @@ export function announcementRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "patch",
       path: "/api/announcements/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:announcement:update")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.announcementUpdate)],
       security: bearerSecurity,
       request: {
         params: idParamSchema,
@@ -163,7 +164,7 @@ export function announcementRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "delete",
       path: "/api/announcements/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:announcement:delete")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.announcementDelete)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {

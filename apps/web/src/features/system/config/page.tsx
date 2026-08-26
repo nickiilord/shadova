@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
+import { PERMISSIONS } from "@repo/shared"
 
 import { Settings2Icon } from "lucide-react"
 
@@ -109,7 +110,7 @@ export default function ConfigPage(): JSX.Element {
             {t("search")}
           </Button>
         </div>
-        <Permission code="system:config:create">
+        <Permission code={PERMISSIONS.configCreate}>
           <Button
             type="button"
             onClick={() => {
@@ -189,7 +190,7 @@ export default function ConfigPage(): JSX.Element {
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
-                        <Permission code="system:config:update">
+                        <Permission code={PERMISSIONS.configUpdate}>
                           <Button
                             type="button"
                             variant="ghost"
@@ -202,7 +203,7 @@ export default function ConfigPage(): JSX.Element {
                             {t("edit")}
                           </Button>
                         </Permission>
-                        <Permission code="system:config:delete">
+                        <Permission code={PERMISSIONS.configDelete}>
                           <Button
                             type="button"
                             variant="ghost"

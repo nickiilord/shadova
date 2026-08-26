@@ -2,6 +2,7 @@ import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import type { Menu, Prisma } from "@repo/db"
 import { prisma } from "@repo/db"
+import { PERMISSIONS } from "@repo/shared"
 import type { MenuNode, MenuType } from "@repo/shared"
 import { buildTree } from "@repo/shared"
 import { HttpError, badRequest, notFound } from "../lib/http-error.js"
@@ -24,7 +25,6 @@ const menuFieldShape = {
   sort: z.number().int(),
   status: z.boolean().optional(),
 }
-
 const menuCreateSchema = z
   .object({ ...menuFieldShape, sort: z.number().int().default(0) })
   .superRefine((value, ctx) => {
@@ -128,7 +128,7 @@ export function menuRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/menus/tree",
-      middleware: [authenticate(cfg), requirePermission("system:menu:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.menuQuery)],
       security: bearerSecurity,
       responses: {
         200: { description: "全量菜单树（含按钮，管理页用）", ...okBody(z.array(menuNodeRefSchema)) },
@@ -146,7 +146,7 @@ export function menuRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/menus",
-      middleware: [authenticate(cfg), requirePermission("system:menu:create")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.menuCreate)],
       security: bearerSecurity,
       request: { body: { content: { "application/json": { schema: menuCreateSchema } } } },
       responses: {
@@ -190,7 +190,7 @@ export function menuRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/menus/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:menu:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.menuQuery)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -210,7 +210,7 @@ export function menuRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "patch",
       path: "/api/menus/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:menu:update")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.menuUpdate)],
       security: bearerSecurity,
       request: { params: idParamSchema, body: { content: { "application/json": { schema: menuUpdateSchema } } } },
       responses: {
@@ -286,7 +286,7 @@ export function menuRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "delete",
       path: "/api/menus/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:menu:delete")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.menuDelete)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {

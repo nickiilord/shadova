@@ -18,10 +18,11 @@ COPY apps/web apps/web
 # install 的 postinstall 会执行 prisma generate（schema 已复制）
 RUN pnpm install --frozen-lockfile
 RUN pnpm turbo build
+RUN pnpm prune --prod
 
 FROM base AS runtime-api
 ENV NODE_ENV=production
-# 全量 node_modules（含 workspace 软链与 prisma 引擎；api 运行依赖 @repo/db 的 TS 源码，经 tsx 转译）
+# 生产依赖与 workspace 编译产物
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/packages ./packages
 COPY --from=build /app/apps/api ./apps/api

@@ -1,6 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import { prisma } from "@repo/db"
+import { PERMISSIONS } from "@repo/shared"
 import type { AppConfig } from "../config.js"
 import { bearerSecurity, createSubApp, okBody } from "../lib/openapi.js"
 import {
@@ -47,7 +48,7 @@ export function logRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/logs/login",
-      middleware: [authenticate(cfg), requirePermission("system:log:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.logQuery)],
       security: bearerSecurity,
       request: { query: pageQuery },
       responses: {
@@ -79,7 +80,7 @@ export function logRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/logs/operation",
-      middleware: [authenticate(cfg), requirePermission("system:log:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.logQuery)],
       security: bearerSecurity,
       request: { query: pageQuery },
       responses: {

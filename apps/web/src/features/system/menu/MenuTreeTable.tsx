@@ -1,6 +1,7 @@
 import { useState } from "react"
 import type { JSX, ReactNode } from "react"
 import { useTranslation } from "react-i18next"
+import { PERMISSIONS } from "@repo/shared"
 
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
 
@@ -111,7 +112,7 @@ export function MenuTreeTable({
           </TableCell>
           <TableCell>
             <div className="flex justify-end gap-1">
-              <Permission code="system:menu:update">
+              <Permission code={PERMISSIONS.menuUpdate}>
                 <Button
                   type="button"
                   variant="ghost"
@@ -121,7 +122,7 @@ export function MenuTreeTable({
                   {t("edit")}
                 </Button>
               </Permission>
-              <Permission code="system:menu:delete">
+              <Permission code={PERMISSIONS.menuDelete}>
                 <Button
                   type="button"
                   variant="ghost"

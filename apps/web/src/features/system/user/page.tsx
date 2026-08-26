@@ -3,6 +3,7 @@ import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
 
 import { UsersIcon } from "lucide-react"
+import { PERMISSIONS } from "@repo/shared"
 
 import { PageHeader } from "@/components/business/PageHeader"
 import { Permission } from "@/components/business/Permission"
@@ -139,7 +140,7 @@ export default function UserPage(): JSX.Element {
           >
             {t("export")}
           </Button>
-          <Permission code="system:user:create">
+          <Permission code={PERMISSIONS.userCreate}>
             <Button
               type="button"
               variant="outline"
@@ -234,7 +235,7 @@ export default function UserPage(): JSX.Element {
                     <TableCell>{formatDateTime(user.createdAt)}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
-                        <Permission code="system:user:update">
+                        <Permission code={PERMISSIONS.userUpdate}>
                           <Button
                             type="button"
                             variant="ghost"
@@ -247,7 +248,7 @@ export default function UserPage(): JSX.Element {
                             {t("edit")}
                           </Button>
                         </Permission>
-                        <Permission code="system:user:assign-role">
+                        <Permission code={PERMISSIONS.userAssignRole}>
                           <Button
                             type="button"
                             variant="ghost"
@@ -259,7 +260,7 @@ export default function UserPage(): JSX.Element {
                             {t("assignRoles")}
                           </Button>
                         </Permission>
-                        <Permission code="system:user:delete">
+                        <Permission code={PERMISSIONS.userDelete}>
                           <Button
                             type="button"
                             variant="ghost"

@@ -1,6 +1,7 @@
 import { useState } from "react"
 import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
+import { PERMISSIONS } from "@repo/shared"
 
 import { Building2Icon } from "lucide-react"
 
@@ -63,7 +64,7 @@ export default function DepartmentPage(): JSX.Element {
 
       {/* 工具栏：操作按钮居右（部门无搜索——树形全量展示） */}
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <Permission code="system:dept:create">
+        <Permission code={PERMISSIONS.departmentCreate}>
           <Button
             type="button"
             onClick={() => {

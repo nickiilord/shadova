@@ -2,12 +2,14 @@ import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import type { Prisma } from "@repo/db"
 import { prisma } from "@repo/db"
-import { HttpError, badRequest, notFound } from "../lib/http-error.js"
+import { PERMISSIONS } from "@repo/shared"
+import { HttpError, notFound } from "../lib/http-error.js"
 import type { AppConfig } from "../config.js"
 import { bearerSecurity, createSubApp, okBody } from "../lib/openapi.js"
 import { p2002Conflict } from "../lib/prisma-error.js"
 import { errorBodySchema, idParamSchema, roleDetailSchema, roleListItemSchema, rolePageResultSchema } from "../lib/schemas.js"
 import { authenticate, requirePermission } from "../middleware/auth.js"
+import { replaceRoleMenus } from "../services/role-service.js"
 
 const pageQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -36,15 +38,6 @@ const menuIdsSchema = z.object({ menuIds: z.array(z.string()).max(500) })
 const ROLE_UNIQUE_FIELDS = {
   code: { code: "ROLE_CODE_TAKEN", message: "角色编码已存在" },
 } as const
-
-/** 菜单存在性校验 + 去重（不存在 → 400）；事务内调用，保证校验与写入原子（须在 $transaction 回调中使用 tx） */
-async function resolveMenuIds(tx: Prisma.TransactionClient, menuIds: string[]): Promise<string[]> {
-  const unique = Array.from(new Set(menuIds))
-  if (unique.length === 0) return unique
-  const count = await tx.menu.count({ where: { id: { in: unique } } })
-  if (count !== unique.length) throw badRequest("菜单不存在")
-  return unique
-}
 
 /** 角色详情；不存在 → 404 */
 async function fetchRoleDetail(id: string) {
@@ -75,7 +68,7 @@ export function roleRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/roles",
-      middleware: [authenticate(cfg), requirePermission("system:role:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.roleQuery)],
       security: bearerSecurity,
       request: { query: pageQuery },
       responses: {
@@ -114,7 +107,7 @@ export function roleRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/roles/list",
-      middleware: [authenticate(cfg), requirePermission("system:role:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.roleQuery)],
       security: bearerSecurity,
       responses: {
         200: { description: "角色全量列表（下拉/分配用，无分页）", ...okBody(z.array(roleListItemSchema)) },
@@ -132,7 +125,7 @@ export function roleRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/roles",
-      middleware: [authenticate(cfg), requirePermission("system:role:create")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.roleCreate)],
       security: bearerSecurity,
       request: { body: { content: { "application/json": { schema: roleCreateSchema } } } },
       responses: {
@@ -165,7 +158,7 @@ export function roleRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/roles/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:role:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.roleQuery)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -185,7 +178,7 @@ export function roleRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "patch",
       path: "/api/roles/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:role:update")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.roleUpdate)],
       security: bearerSecurity,
       request: { params: idParamSchema, body: { content: { "application/json": { schema: roleUpdateSchema } } } },
       responses: {
@@ -223,7 +216,7 @@ export function roleRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "delete",
       path: "/api/roles/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:role:delete")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.roleDelete)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -247,7 +240,7 @@ export function roleRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/roles/{id}/menus",
-      middleware: [authenticate(cfg), requirePermission("system:role:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.roleQuery)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -275,7 +268,7 @@ export function roleRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "put",
       path: "/api/roles/{id}/menus",
-      middleware: [authenticate(cfg), requirePermission("system:role:assign")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.roleAssign)],
       security: bearerSecurity,
       request: { params: idParamSchema, body: { content: { "application/json": { schema: menuIdsSchema } } } },
       responses: {
@@ -291,13 +284,7 @@ export function roleRoutes(cfg: AppConfig): OpenAPIHono {
       const { menuIds } = c.req.valid("json")
       await fetchRoleDetail(id)
       // 统一交互式事务风格：校验（tx.menu.count，resolveMenuIds 模式）+ 全量替换同一事务内
-      await prisma.$transaction(async (tx) => {
-        const menus = await resolveMenuIds(tx, menuIds)
-        await tx.roleMenu.deleteMany({ where: { roleId: id } })
-        if (menus.length > 0) {
-          await tx.roleMenu.createMany({ data: menus.map((menuId) => ({ roleId: id, menuId })) })
-        }
-      })
+      await replaceRoleMenus(id, menuIds)
       return c.json({ code: 0, data: null, message: "ok" }, 200)
     },
   )

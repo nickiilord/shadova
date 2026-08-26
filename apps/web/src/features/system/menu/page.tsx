@@ -1,6 +1,7 @@
 import { useState } from "react"
 import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
+import { PERMISSIONS } from "@repo/shared"
 
 import { useQueryClient } from "@tanstack/react-query"
 
@@ -78,7 +79,7 @@ export default function MenuPage(): JSX.Element {
           <Button variant="outline" type="button" onClick={refresh} className="h-9">
             {t("refresh")}
           </Button>
-          <Permission code="system:menu:create">
+          <Permission code={PERMISSIONS.menuCreate}>
             <Button
               type="button"
               onClick={() => {

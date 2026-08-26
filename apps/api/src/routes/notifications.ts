@@ -1,6 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import { prisma } from "@repo/db"
+import { PERMISSIONS } from "@repo/shared"
 import { HttpError, notFound } from "../lib/http-error.js"
 import type { AppConfig } from "../config.js"
 import { bearerSecurity, createSubApp, okBody } from "../lib/openapi.js"
@@ -146,7 +147,7 @@ export function notificationRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/notifications",
-      middleware: [authenticate(cfg), requirePermission("system:notification:create")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.notificationCreate)],
       security: bearerSecurity,
       request: { body: { content: { "application/json": { schema: notificationCreateSchema } } } },
       responses: {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
+import { PERMISSIONS } from "@repo/shared"
 
 import { MonitorIcon } from "lucide-react"
 
@@ -168,7 +169,7 @@ export default function SessionPage(): JSX.Element {
                     <TableCell>{formatDateTime(session.expiresAt)}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
-                        <Permission code="system:session:revoke">
+                        <Permission code={PERMISSIONS.sessionRevoke}>
                           <Button
                             type="button"
                             variant="ghost"

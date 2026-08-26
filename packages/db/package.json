@@ -4,15 +4,20 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
     "postinstall": "prisma generate",
     "generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "seed": "tsx src/seed.ts",
-    "seed:reset": "tsx src/seed.ts --reset-admin"
+    "build": "tsc -p tsconfig.build.json",
+    "seed": "node dist/seed.js",
+    "seed:reset": "node dist/seed.js --reset-admin"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0"

@@ -3,6 +3,7 @@ import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
 
 import { ShieldIcon } from "lucide-react"
+import { PERMISSIONS } from "@repo/shared"
 
 import { PageHeader } from "@/components/business/PageHeader"
 import { Permission } from "@/components/business/Permission"
@@ -114,7 +115,7 @@ export default function RolePage(): JSX.Element {
             {t("search")}
           </Button>
         </div>
-        <Permission code="system:role:create">
+        <Permission code={PERMISSIONS.roleCreate}>
           <Button
             type="button"
             onClick={() => {
@@ -182,7 +183,7 @@ export default function RolePage(): JSX.Element {
                     <TableCell>{role.description ?? "-"}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
-                        <Permission code="system:role:assign">
+                        <Permission code={PERMISSIONS.roleAssign}>
                           <Button
                             type="button"
                             variant="ghost"
@@ -194,7 +195,7 @@ export default function RolePage(): JSX.Element {
                             {t("assignPermission")}
                           </Button>
                         </Permission>
-                        <Permission code="system:role:update">
+                        <Permission code={PERMISSIONS.roleUpdate}>
                           <Button
                             type="button"
                             variant="ghost"
@@ -207,7 +208,7 @@ export default function RolePage(): JSX.Element {
                             {t("edit")}
                           </Button>
                         </Permission>
-                        <Permission code="system:role:delete">
+                        <Permission code={PERMISSIONS.roleDelete}>
                           <Button
                             type="button"
                             variant="ghost"

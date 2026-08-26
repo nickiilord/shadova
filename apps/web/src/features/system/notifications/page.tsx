@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
+import { PERMISSIONS } from "@repo/shared"
 
 import { BellIcon, CheckCheckIcon, SendIcon } from "lucide-react"
 
@@ -93,7 +94,7 @@ export default function NotificationPage(): JSX.Element {
           <CheckCheckIcon />
           {t("markAllRead")}
         </Button>
-        <Permission code="system:notification:create">
+        <Permission code={PERMISSIONS.notificationCreate}>
           <Button
             type="button"
             onClick={() => {

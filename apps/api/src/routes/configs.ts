@@ -1,6 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import type { Prisma } from "@repo/db"
+import { PERMISSIONS } from "@repo/shared"
 import { prisma } from "@repo/db"
 import { HttpError, notFound } from "../lib/http-error.js"
 import type { AppConfig } from "../config.js"
@@ -61,7 +62,7 @@ export function configRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/configs",
-      middleware: [authenticate(cfg), requirePermission("system:config:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.configQuery)],
       security: bearerSecurity,
       request: { query: pageQuery },
       responses: {
@@ -94,7 +95,7 @@ export function configRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/configs",
-      middleware: [authenticate(cfg), requirePermission("system:config:create")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.configCreate)],
       security: bearerSecurity,
       request: { body: { content: { "application/json": { schema: configCreateSchema } } } },
       responses: {
@@ -127,7 +128,7 @@ export function configRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/configs/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:config:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.configQuery)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -147,7 +148,7 @@ export function configRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "patch",
       path: "/api/configs/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:config:update")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.configUpdate)],
       security: bearerSecurity,
       request: { params: idParamSchema, body: { content: { "application/json": { schema: configUpdateSchema } } } },
       responses: {
@@ -186,7 +187,7 @@ export function configRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "delete",
       path: "/api/configs/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:config:delete")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.configDelete)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {

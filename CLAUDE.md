@@ -89,6 +89,14 @@ shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React
 - **严格 TS**：`packages/config/tsconfig.base.json`（strict、noUncheckedIndexedAccess、exactOptionalPropertyTypes、verbatimModuleSyntax、noUnusedLocals/Parameters、noFallthroughCasesInSwitch 等）。唯一放宽：web 包 `exactOptionalPropertyTypes: false`（shadcn 上游组件产物不兼容，原因见 `apps/web/tsconfig.json` 注释——勿扩大放宽面）。
 - **shadcn 严格 CLI**：组件一律 `npx shadcn@latest add <component>` 安装，**禁止手写/复制粘贴组件源码**；升级/覆盖走 `--dry-run` → `--diff` 合并，并跳过 ignore 面 = `src/components/ui/` 全部 + `src/hooks/use-mobile.ts` + `src/api/schema.d.ts`（生成物与 CLI 无关）。新 UI 需求先 `npx shadcn@latest search` 官方/社区 registry。
 - **权限码规范**：`模块:资源:操作`（如 `system:user:create`）。新增权限三处联动：种子菜单 BUTTON 行（或菜单管理页在线创建）+ 后端路由 `requirePermission(code)` 挂码 + 前端 `<Permission code="...">` 包裹。计算规则唯一在 `packages/shared`（纯严格交集，无超管例外）。
+- **权限码单一来源**：生产代码中的权限常量统一引用 `packages/shared/src/permission-codes.ts` 导出的 `PERMISSIONS`；禁止在 API 路由或 Web 页面重新定义同名字符串。注册表的一致性由 `packages/shared/test/permission-codes.test.ts` 守护。测试夹具和历史业务样例可保留字面量，但不得作为生产权限常量来源。
+- **领域服务边界**：路由层只负责 HTTP/OpenAPI 适配、参数校验和响应包装；跨接口复用的查询、事务、唯一性校验、树操作和响应映射必须放在 `apps/api/src/services/`。禁止在多个路由复制 Prisma 事务或 DTO 映射。
+- **树结构实现**：部门、菜单等 `parentId` 树统一使用 `packages/shared/src/tree.ts` 的纯函数或基于它的领域 service；先全量取回必要字段再内存建树，禁止为单次管理操作引入递归 SQL/方言专属查询。
+- **运行时产物边界**：workspace 包必须提供 `dist` 构建入口；生产镜像启动编译产物和生产依赖，不通过 `tsx` 直接加载 workspace 源码。开发/初始化可以继续使用 `db push`，但不得因此把开发工具链带入运行时。
+- **请求客户端单一重试链**：Web 的 JSON、下载和 multipart 请求必须复用 `apps/web/src/api/client.ts` 的统一鉴权重试逻辑；401 只允许单次刷新和重试，禁止在业务 hook/page 内自行刷新 token。
+- **递归 OpenAPI schema**：受 zod-openapi 递归 schema 限制的 workaround 必须集中在 `apps/api/src/lib/schemas.ts` 和应用注册处维护；新增递归字段时同步更新运行时 schema、手工 OAS 组件及契约测试，禁止在路由内再次手写第二份。
+- **测试隔离**：API 集成测试不得写开发库；测试数据库通过 `TEST_DATABASE_URL` 指定，并优先使用进程级/worker 级独立文件。测试初始化必须在 Prisma client 加载前完成，避免模块绑定错误数据库。
+- **交付验证**：独立变更至少执行受影响包的 TypeScript 检查和 `git diff --check`；API 契约变更再生成 `openapi.json`/`schema.d.ts`。全量测试只在发布或专门验收阶段运行。
 - **三方言约定**（设计文档 §11）：不用 Prisma enum（字符串 + zod 校验）；可空唯一字段（邮箱/手机/username 冲突统一转 409）；树操作全量取回 + 内存建树（不用递归 CTE）；不用 JSONB/方言专属函数；时间统一 UTC。
 - **schema 双源同步**：`packages/db/prisma/schema.prisma` 字段/注释变更必须同步 `docs/database/schema.sql`（MySQL DDL 文档版，运行时权威仍是 schema.prisma），提交前人工核对。
 - **提交规范**：conventional commits（commitlint 校验）；husky pre-commit = 自动重生成 OpenAPI 契约 + lint-staged（eslint --fix）并暂存生成物。改 api 源码后若 typecheck 报 schema.d.ts 缺类型，说明生成产物陈旧，先跑 generate:openapi + generate:types。

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
+import { PERMISSIONS } from "@repo/shared"
 
 import { BookOpenIcon } from "lucide-react"
 
@@ -125,7 +126,7 @@ export default function DictPage(): JSX.Element {
             {t("search")}
           </Button>
         </div>
-        <Permission code="system:dict:create">
+        <Permission code={PERMISSIONS.dictCreate}>
           <Button type="button" onClick={openCreate} className="h-9">
             {t("addType")}
           </Button>
@@ -192,7 +193,7 @@ export default function DictPage(): JSX.Element {
                     <TableCell>{type.itemCount}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1" onClick={(event) => { event.stopPropagation(); }}>
-                        <Permission code="system:dict:update">
+                        <Permission code={PERMISSIONS.dictUpdate}>
                           <Button
                             type="button"
                             variant="ghost"
@@ -204,7 +205,7 @@ export default function DictPage(): JSX.Element {
                             {t("edit")}
                           </Button>
                         </Permission>
-                        <Permission code="system:dict:delete">
+                        <Permission code={PERMISSIONS.dictDelete}>
                           <Button
                             type="button"
                             variant="ghost"

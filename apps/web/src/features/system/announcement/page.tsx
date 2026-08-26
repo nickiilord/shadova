@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
+import { PERMISSIONS } from "@repo/shared"
 
 import { MegaphoneIcon } from "lucide-react"
 
@@ -85,7 +86,7 @@ export default function AnnouncementPage(): JSX.Element {
 
       {/* 工具栏：操作按钮居右 */}
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <Permission code="system:announcement:create">
+        <Permission code={PERMISSIONS.announcementCreate}>
           <Button
             type="button"
             onClick={() => {
@@ -158,7 +159,7 @@ export default function AnnouncementPage(): JSX.Element {
                     <TableCell>{new Date(announcement.updatedAt).toLocaleString()}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
-                        <Permission code="system:announcement:update">
+                <Permission code={PERMISSIONS.announcementUpdate}>
                           <Button
                             type="button"
                             variant="ghost"
@@ -171,7 +172,7 @@ export default function AnnouncementPage(): JSX.Element {
                             {t("edit")}
                           </Button>
                         </Permission>
-                        <Permission code="system:announcement:delete">
+                <Permission code={PERMISSIONS.announcementDelete}>
                           <Button
                             type="button"
                             variant="ghost"

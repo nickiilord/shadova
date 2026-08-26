@@ -6,7 +6,7 @@ import type { Context, Env } from "hono"
 import { HTTPException } from "hono/http-exception"
 import { loadConfig, type AppConfig } from "./config.js"
 import { HttpError } from "./lib/http-error.js"
-import { API_INFO, type PublicUser } from "./lib/schemas.js"
+import { API_INFO, menuNodeOpenApiSchema, type PublicUser } from "./lib/schemas.js"
 import { validationHook } from "./lib/validation-hook.js"
 import { requestIp, requestUserAgent } from "./lib/request-log.js"
 import { redactJson } from "./lib/redact.js"
@@ -113,24 +113,7 @@ export function createApp(cfg: AppConfig = loadConfig()): OpenAPIHono {
   })
 
   // MenuNode 递归组件手工注册（实证：zod-to-openapi v7 不支持 z.lazy，schemas.ts menuNodeSchema 仅运行时用）
-  app.openAPIRegistry.registerComponent("schemas", "MenuNode", {
-    type: "object",
-    properties: {
-      id: { type: "string" },
-      parentId: { type: "string", nullable: true },
-      nameZh: { type: "string" },
-      nameEn: { type: "string", nullable: true },
-      type: { type: "string", enum: ["DIR", "MENU", "BUTTON"] },
-      path: { type: "string", nullable: true },
-      component: { type: "string", nullable: true },
-      icon: { type: "string", nullable: true },
-      permission: { type: "string", nullable: true },
-      sort: { type: "number" },
-      status: { type: "boolean" },
-      children: { type: "array", items: { $ref: "#/components/schemas/MenuNode" } },
-    },
-    required: ["id", "parentId", "nameZh", "nameEn", "type", "path", "component", "icon", "permission", "sort", "status", "children"],
-  })
+  app.openAPIRegistry.registerComponent("schemas", "MenuNode", menuNodeOpenApiSchema)
 
   app.route("/", announcementRoutes(cfg))
   app.route("/", authRoutes(cfg))

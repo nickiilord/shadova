@@ -23,4 +23,4 @@ pnpm exec tsx src/init.ts
 
 echo "[entrypoint] 启动 api 服务..."
 cd /app/apps/api
-exec pnpm exec tsx dist/index.js
+exec node dist/index.js

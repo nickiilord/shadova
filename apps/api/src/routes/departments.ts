@@ -1,6 +1,8 @@
 import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import type { Prisma } from "@repo/db"
+import { PERMISSIONS } from "@repo/shared"
+import { collectSubtreeIds } from "@repo/shared"
 import { prisma } from "@repo/db"
 import { badRequest, notFound } from "../lib/http-error.js"
 import type { AppConfig } from "../config.js"
@@ -22,27 +24,6 @@ const departmentUpdateSchema = departmentCreateSchema.partial().extend({
 })
 
 /** 收集 id 的全部后代 id（含自身；编辑时防循环挂载用） */
-function collectSubtreeIds(all: { id: string; parentId: string | null }[], id: string): Set<string> {
-  const byParent = new Map<string, string[]>()
-  for (const node of all) {
-    if (node.parentId !== null) {
-      const list = byParent.get(node.parentId) ?? []
-      list.push(node.id)
-      byParent.set(node.parentId, list)
-    }
-  }
-  const result = new Set<string>()
-  const queue = [id]
-  while (queue.length > 0) {
-    const current = queue.shift()
-    if (current === undefined) break
-    if (result.has(current)) continue
-    result.add(current)
-    queue.push(...(byParent.get(current) ?? []))
-  }
-  return result
-}
-
 /** 部门详情（含用户数）；不存在 → 404 */
 async function fetchDepartment(id: string) {
   const department = await prisma.department.findUnique({ where: { id } })
@@ -73,7 +54,7 @@ export function departmentRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/departments",
-      middleware: [authenticate(cfg), requirePermission("system:dept:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.departmentQuery)],
       security: bearerSecurity,
       responses: {
         200: { description: "部门全量列表（扁平，前端建树）", ...okBody(departmentListSchema) },
@@ -98,7 +79,7 @@ export function departmentRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/departments",
-      middleware: [authenticate(cfg), requirePermission("system:dept:create")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.departmentCreate)],
       security: bearerSecurity,
       request: { body: { content: { "application/json": { schema: departmentCreateSchema } } } },
       responses: {
@@ -129,7 +110,7 @@ export function departmentRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "patch",
       path: "/api/departments/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:dept:update")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.departmentUpdate)],
       security: bearerSecurity,
       request: {
         params: idParamSchema,
@@ -172,7 +153,7 @@ export function departmentRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "delete",
       path: "/api/departments/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:dept:delete")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.departmentDelete)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {

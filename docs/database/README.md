@@ -30,7 +30,7 @@
 
 ## 迁移策略（明确约定）
 
-本项目**不使用 Prisma 迁移文件**（`prisma/migrations` 为空）：部署与开发均以 `prisma db push` 幂等同步结构（见 docker-entrypoint.sh），schema 演进无历史记录。若团队决定启用版本化迁移，需先为各 provider 生成基线迁移，届时再切换部署入口为 `migrate deploy`。
+本项目当前保留 `prisma db push` 作为部署与开发的结构同步方式，schema 演进不记录历史迁移。运行时 workspace 包必须先构建到各自 `dist`，生产 API 仅从编译产物启动；详见根目录 `Dockerfile`。
 
 ## 切换数据库
 

@@ -1,6 +1,7 @@
 import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import { prisma } from "@repo/db"
+import { PERMISSIONS } from "@repo/shared"
 import type { AppConfig } from "../config.js"
 import { notFound } from "../lib/http-error.js"
 import { bearerSecurity, createSubApp, okBody } from "../lib/openapi.js"
@@ -31,7 +32,7 @@ export function sessionRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/sessions",
-      middleware: [authenticate(cfg), requirePermission("system:session:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.sessionQuery)],
       security: bearerSecurity,
       request: { query: pageQuery },
       responses: {
@@ -77,7 +78,7 @@ export function sessionRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "delete",
       path: "/api/sessions/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:session:revoke")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.sessionRevoke)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -103,7 +104,7 @@ export function sessionRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/sessions/{userId}/revoke-all",
-      middleware: [authenticate(cfg), requirePermission("system:session:revoke")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.sessionRevoke)],
       security: bearerSecurity,
       request: { params: revokeAllParamSchema },
       responses: {

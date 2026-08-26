@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
+import { PERMISSIONS } from "@repo/shared"
 
 import { PlusIcon, Trash2Icon } from "lucide-react"
 
@@ -56,7 +57,7 @@ export function DictDetailDialog({
   onClose: () => void
 }): JSX.Element {
   const { t } = useTranslation("dict")
-  const canUpdate = usePermissionCodes().has("system:dict:update")
+  const canUpdate = usePermissionCodes().has(PERMISSIONS.dictUpdate)
   const { data, isLoading, isError, error } = useDictTypeQuery(type.id)
   const saveMutation = useSaveDictItemsMutation()
 
@@ -171,7 +172,7 @@ export function DictDetailDialog({
               </div>
             )}
           </div>
-          <Permission code="system:dict:update">
+          <Permission code={PERMISSIONS.dictUpdate}>
             <Button type="button" variant="outline" size="sm" onClick={onEditType} className="h-8">
               {t("editTypeInfo")}
             </Button>

@@ -11,7 +11,7 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 |---|---|---|
 | 前端 | Vite + React 19 + React Router 7 + TanStack Query + shadcn-ui | 约定式页面 `apps/web/src/features/<component>/page.tsx`；shadcn 组件严格 CLI 管理 |
 | 后端 | Hono + @hono/zod-openapi | zod schema 三合一（校验 / OpenAPI 文档 / 类型）；`/api/docs` 挂 Swagger UI |
-| 数据 | Prisma（SQLite 默认 / MySQL / PostgreSQL） | 三方言可移植，无迁移文件，走 `db push` |
+| 数据 | Prisma（SQLite 默认 / MySQL / PostgreSQL） | 三方言可移植，结构同步走 `db push`；运行时包从 `dist` 产物加载 |
 | 认证 | 内置 JWT 双 Token + 邮箱/手机 OTP；可选 Clerk 适配器 | 环境变量 `VITE_AUTH_PROVIDER` / 后端 `authProvider` 切换 |
 
 核心能力：三种登录（账号密码 / 邮箱动态码 / 手机动态码）、多角色权限（严格交集）、用户 / 角色 / 菜单 / 部门 / 字典 / 参数 / 公告 / 通知 / 日志 / 会话 / 文件等系统管理模块。
@@ -70,7 +70,7 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 - **BUTTON 节点参与交集**，只产出 `permissionCodes` 供页面按钮显隐，不进侧边栏、不生成路由。
 - `permissionCodes` = 交集内所有节点（MENU + BUTTON）的 `permission` 非空集合。
 
-实现唯一位置：`packages/shared/src/permissions.ts`（纯函数 `computeVisibleMenus(roleMenuIdsList, allMenus)`），后端 `requirePermission` 与前端 `usePermissionCodes`/`<Permission>` 共用同一逻辑。
+实现唯一位置：`packages/shared/src/permissions.ts`（纯函数 `computeVisibleMenus(roleMenuIdsList, allMenus)`）；权限码注册表位于 `packages/shared/src/permission-codes.ts`，其一致性测试位于 `packages/shared/test/permission-codes.test.ts`。后端 `requirePermission` 与前端 `usePermissionCodes`/`<Permission>` 应引用该注册表。
 
 ### 3.2 实时生效
 

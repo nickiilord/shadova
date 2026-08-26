@@ -2,7 +2,8 @@ import { createRoute, z } from "@hono/zod-openapi"
 import type { OpenAPIHono } from "@hono/zod-openapi"
 import type { Prisma } from "@repo/db"
 import { prisma } from "@repo/db"
-import { HttpError, badRequest, notFound } from "../lib/http-error.js"
+import { PERMISSIONS } from "@repo/shared"
+import { HttpError, notFound } from "../lib/http-error.js"
 import type { AppConfig } from "../config.js"
 import { bearerSecurity, createSubApp, okBody } from "../lib/openapi.js"
 import { p2002Conflict } from "../lib/prisma-error.js"
@@ -15,6 +16,7 @@ import {
   idParamSchema,
 } from "../lib/schemas.js"
 import { authenticate, requirePermission } from "../middleware/auth.js"
+import { replaceDictItems } from "../services/dict-service.js"
 
 const pageQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -59,7 +61,6 @@ async function fetchDictTypeExists(id: string) {
   const type = await prisma.dictType.findUnique({ where: { id }, select: { id: true } })
   if (!type) throw notFound("字典类型不存在")
 }
-
 /** 字典类型详情；不存在 → 404（含字典项，按 sort 升序） */
 async function fetchDictTypeDetail(id: string) {
   const type = await prisma.dictType.findUnique({
@@ -128,7 +129,7 @@ export function dictRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/dicts/types",
-      middleware: [authenticate(cfg), requirePermission("system:dict:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.dictQuery)],
       security: bearerSecurity,
       request: { query: pageQuery },
       responses: {
@@ -163,7 +164,7 @@ export function dictRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "post",
       path: "/api/dicts/types",
-      middleware: [authenticate(cfg), requirePermission("system:dict:create")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.dictCreate)],
       security: bearerSecurity,
       request: { body: { content: { "application/json": { schema: dictTypeCreateSchema } } } },
       responses: {
@@ -196,7 +197,7 @@ export function dictRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/dicts/types/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:dict:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.dictQuery)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -216,7 +217,7 @@ export function dictRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "patch",
       path: "/api/dicts/types/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:dict:update")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.dictUpdate)],
       security: bearerSecurity,
       request: { params: idParamSchema, body: { content: { "application/json": { schema: dictTypeUpdateSchema } } } },
       responses: {
@@ -255,7 +256,7 @@ export function dictRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "delete",
       path: "/api/dicts/types/{id}",
-      middleware: [authenticate(cfg), requirePermission("system:dict:delete")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.dictDelete)],
       security: bearerSecurity,
       request: { params: idParamSchema },
       responses: {
@@ -279,7 +280,7 @@ export function dictRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "put",
       path: "/api/dicts/types/{id}/items",
-      middleware: [authenticate(cfg), requirePermission("system:dict:update")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.dictUpdate)],
       security: bearerSecurity,
       request: { params: idParamSchema, body: { content: { "application/json": { schema: dictItemsPutSchema } } } },
       responses: {
@@ -293,25 +294,7 @@ export function dictRoutes(cfg: AppConfig): OpenAPIHono {
     async (c) => {
       const { id } = c.req.valid("param")
       const { items } = c.req.valid("json")
-      await fetchDictTypeExists(id)
-      // value 重复校验（zod 已保证非空）；全量替换事务：校验与写入原子
-      const values = items.map((item) => item.value)
-      if (new Set(values).size !== values.length) throw badRequest("字典项值不能重复")
-      await prisma.$transaction(async (tx) => {
-        await tx.dictItem.deleteMany({ where: { typeId: id } })
-        if (items.length > 0) {
-          await tx.dictItem.createMany({
-            data: items.map((item) => ({
-              typeId: id,
-              labelZh: item.labelZh,
-              labelEn: item.labelEn ?? null,
-              value: item.value,
-              sort: item.sort,
-              status: item.status ?? true,
-            })),
-          })
-        }
-      })
+      await replaceDictItems(id, items)
       return c.json({ code: 0, data: null, message: "ok" }, 200)
     },
   )
@@ -320,7 +303,7 @@ export function dictRoutes(cfg: AppConfig): OpenAPIHono {
     createRoute({
       method: "get",
       path: "/api/dicts/types/{typeCode}/options",
-      middleware: [authenticate(cfg), requirePermission("system:dict:query")],
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.dictQuery)],
       security: bearerSecurity,
       request: { params: typeCodeParamSchema },
       responses: {

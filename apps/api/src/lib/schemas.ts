@@ -84,6 +84,26 @@ export const menuNodeSchema: z.ZodType<MenuNode> = z.lazy(() =>
  */
 export const menuNodeRefSchema: z.ZodType<MenuNode> = z.any().openapi({ $ref: "#/components/schemas/MenuNode" } as never)
 
+/** zod-openapi 当前无法从 z.lazy 生成递归组件，统一维护唯一的 OAS 组件定义。 */
+export const menuNodeOpenApiSchema = {
+  type: "object" as const,
+  properties: {
+    id: { type: "string" as const },
+    parentId: { type: "string" as const, nullable: true as const },
+    nameZh: { type: "string" as const },
+    nameEn: { type: "string" as const, nullable: true as const },
+    type: { type: "string" as const, enum: ["DIR", "MENU", "BUTTON"] },
+    path: { type: "string" as const, nullable: true as const },
+    component: { type: "string" as const, nullable: true as const },
+    icon: { type: "string" as const, nullable: true as const },
+    permission: { type: "string" as const, nullable: true as const },
+    sort: { type: "number" as const },
+    status: { type: "boolean" as const },
+    children: { type: "array" as const, items: { $ref: "#/components/schemas/MenuNode" } },
+  },
+  required: ["id", "parentId", "nameZh", "nameEn", "type", "path", "component", "icon", "permission", "sort", "status", "children"],
+}
+
 /** me 响应：user + roles + 交集 navTree + permissionCodes */
 export const meResponseSchema = z
   .object({

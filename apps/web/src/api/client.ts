@@ -45,6 +45,16 @@ async function recoverFrom401(): Promise<string | null> {
   return getAccessToken()
 }
 
+async function fetchWithAuth(path: string, init: RequestInit, headers: Headers): Promise<Response> {
+  const response = await safeFetch(path, init, headers)
+  if (response.status !== 401) return response
+  const freshToken = await recoverFrom401()
+  if (!freshToken) return response
+  setAccessToken(freshToken)
+  headers.set("authorization", `Bearer ${freshToken}`)
+  return safeFetch(path, init, headers)
+}
+
 /**
  * 统一 fetch 封装：
  * - 自动加 content-type: application/json + Bearer access token
@@ -56,15 +66,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   headers.set("content-type", "application/json")
   const token = getAccessToken()
   if (token) headers.set("authorization", `Bearer ${token}`)
-  let res = await safeFetch(path, init, headers)
-  if (res.status === 401) {
-    const freshToken = await recoverFrom401()
-    if (freshToken) {
-      setAccessToken(freshToken)
-      headers.set("authorization", `Bearer ${freshToken}`)
-      res = await safeFetch(path, init, headers)
-    }
-  }
+  const res = await fetchWithAuth(path, init, headers)
   const body = (await res.json().catch(() => null)) as ApiEnvelope<T> | null
   if (!res.ok || body?.code !== 0) {
     const message = body?.message ?? `请求失败(${String(res.status)})`
@@ -81,15 +83,7 @@ export async function apiDownload(path: string): Promise<Blob> {
   const headers = new Headers()
   const token = getAccessToken()
   if (token) headers.set("authorization", `Bearer ${token}`)
-  let res = await safeFetch(path, {}, headers)
-  if (res.status === 401) {
-    const freshToken = await recoverFrom401()
-    if (freshToken) {
-      setAccessToken(freshToken)
-      headers.set("authorization", `Bearer ${freshToken}`)
-      res = await safeFetch(path, {}, headers)
-    }
-  }
+  const res = await fetchWithAuth(path, {}, headers)
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as ApiEnvelope<unknown> | null
     throw new ApiError(
@@ -108,15 +102,7 @@ export async function apiFormData<T>(path: string, formData: FormData): Promise<
   const headers = new Headers()
   const token = getAccessToken()
   if (token) headers.set("authorization", `Bearer ${token}`)
-  let res = await safeFetch(path, { method: "POST", body: formData }, headers)
-  if (res.status === 401) {
-    const freshToken = await recoverFrom401()
-    if (freshToken) {
-      setAccessToken(freshToken)
-      headers.set("authorization", `Bearer ${freshToken}`)
-      res = await safeFetch(path, { method: "POST", body: formData }, headers)
-    }
-  }
+  const res = await fetchWithAuth(path, { method: "POST", body: formData }, headers)
   const body = (await res.json().catch(() => null)) as ApiEnvelope<T> | null
   if (!res.ok || body?.code !== 0) {
     const message = body?.message ?? `请求失败(${String(res.status)})`
