@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React + shadcn-ui 前端 / Prisma 数据库，SQLite·MySQL·PostgreSQL 三方言可移植）。本文件是智能体开发本仓库的指南；设计文档在 `docs/superpowers/specs/`，实施计划在 `docs/superpowers/plans/`，数据库文档在 `docs/database/`。
+shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React + shadcn-ui 前端 / Prisma 数据库，SQLite·MySQL·PostgreSQL 三方言可移植）。本文件是智能体开发本仓库的指南；数据库文档在 `docs/database/`。
 
 你需要遵循下面的规则
 
