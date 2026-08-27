@@ -1,10 +1,10 @@
 <div align="center">
-  <h1>shadcn-mono</h1>
+  <h1>Shadova</h1>
   <p><strong>契約駆動でテスト可能な、フルスタック RBAC 管理画面モノレポ。</strong></p>
   <p><a href="./README.md">简体中文</a> · <a href="./README.en.md">English</a> · 日本語</p>
 </div>
 
-`shadcn-mono` は、React 管理画面、Hono API、Prisma データ層、共有 RBAC ルールを 1 つの Turborepo にまとめたプロジェクトです。ローカル JWT、メール/SMS ワンタイムコード、Clerk 認証に対応し、同じ Zod/OpenAPI 契約から API ドキュメントとフロントエンド型を生成します。
+`Shadova` は、React 管理画面、Hono API、Prisma データ層、共有 RBAC ルールを 1 つの Turborepo にまとめたプロジェクトです。ローカル JWT、メール/SMS ワンタイムコード、Clerk 認証に対応し、同じ Zod/OpenAPI 契約から API ドキュメントとフロントエンド型を生成します。
 
 > [!IMPORTANT]
 > `admin / Admin@123` はローカルデモ専用です。デプロイ前に既定の認証情報を変更し、本番用シークレットと実際のメール/SMS 配信サービスを設定してください。
@@ -27,8 +27,8 @@
 ### ローカル実行
 
 ```bash
-git clone https://github.com/Nicki518412/shadcn-mono.git
-cd shadcn-mono
+git clone https://github.com/nickiilord/shadova.git
+cd shadova
 
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env

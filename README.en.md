@@ -1,10 +1,10 @@
 <div align="center">
-  <h1>shadcn-mono</h1>
+  <h1>Shadova</h1>
   <p><strong>A contract-driven, testable full-stack RBAC admin monorepo.</strong></p>
   <p><a href="./README.md">简体中文</a> · English · <a href="./README.ja.md">日本語</a></p>
 </div>
 
-`shadcn-mono` combines a React admin app, Hono API, Prisma data layer, and shared RBAC rules in one Turborepo. It supports local JWT, email/SMS one-time codes, and Clerk authentication, while generating API documentation and frontend types from the same Zod/OpenAPI contract.
+`Shadova` combines a React admin app, Hono API, Prisma data layer, and shared RBAC rules in one Turborepo. It supports local JWT, email/SMS one-time codes, and Clerk authentication, while generating API documentation and frontend types from the same Zod/OpenAPI contract.
 
 > [!IMPORTANT]
 > `admin / Admin@123` is for local demos only. Replace the default credentials, configure production secrets, and connect a real email/SMS provider before deployment.
@@ -27,8 +27,8 @@
 ### Run locally
 
 ```bash
-git clone https://github.com/Nicki518412/shadcn-mono.git
-cd shadcn-mono
+git clone https://github.com/nickiilord/shadova.git
+cd shadova
 
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env

@@ -42,7 +42,7 @@ if (typeof window.PointerEvent === "undefined") {
 }
 
 // 品牌名来自环境变量（config.ts 无内置默认）——测试环境显式 stub 保证断言稳定
-vi.stubEnv("VITE_APP_NAME", "Panel")
+vi.stubEnv("VITE_APP_NAME", "Shadova")
 
 // i18n：测试统一中文（既有断言依赖中文文案）——动态 import 确保在初始化前写入语言偏好
 localStorage.setItem("language", "zh")

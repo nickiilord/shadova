@@ -1,7 +1,7 @@
 # 多阶段构建：base（依赖+构建）→ runtime-api（Hono）+ runtime-web（nginx）
 # 构建方式：docker compose build（根目录执行），或
-#   docker build --target runtime-api -t shadcn-mono-api .
-#   docker build --target runtime-web -t shadcn-mono-web .
+#   docker build --target runtime-api -t shadova-api .
+#   docker build --target runtime-web -t shadova-web .
 FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm" PATH="/pnpm:$PATH"
 RUN corepack enable

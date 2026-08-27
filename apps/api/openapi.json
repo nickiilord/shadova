@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "shadcn-mono API",
+    "title": "Shadova API",
     "version": "0.1.0"
   },
   "components": {

@@ -3,7 +3,7 @@ import type { User } from "@repo/db"
 import type { MenuNode } from "@repo/shared"
 
 /** OpenAPI 文档 info（index.ts app.doc 与 scripts/generate-openapi.ts 共用；version 与接口版本联动） */
-export const API_INFO = { title: "shadcn-mono API", version: "0.1.0" } as const
+export const API_INFO = { title: "Shadova API", version: "0.1.0" } as const
 
 // 注：zod-to-openapi v7 的 refId 走位置参数 openapi("RefId")（v6 的 { refId } 对象形式已不再支持）
 /** 公开用户信息（登录/me 等响应共用，Task 14 openapi-typescript 生成类型） */

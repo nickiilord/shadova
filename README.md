@@ -1,10 +1,10 @@
 <div align="center">
-  <h1>shadcn-mono</h1>
+  <h1>Shadova</h1>
   <p><strong>一个契约驱动、可测试的全栈 RBAC 管理端 monorepo。</strong></p>
   <p>简体中文 · <a href="./README.en.md">English</a> · <a href="./README.ja.md">日本語</a></p>
 </div>
 
-`shadcn-mono` 将 React 管理端、Hono API、Prisma 数据层与共享 RBAC 规则组合在一个 Turborepo 中。它支持本地 JWT、邮箱/手机动态码和 Clerk 登录，并从同一份 Zod/OpenAPI 契约生成接口文档与前端类型。
+`Shadova` 将 React 管理端、Hono API、Prisma 数据层与共享 RBAC 规则组合在一个 Turborepo 中。它支持本地 JWT、邮箱/手机动态码和 Clerk 登录，并从同一份 Zod/OpenAPI 契约生成接口文档与前端类型。
 
 > [!IMPORTANT]
 > `admin / Admin@123` 仅用于本地演示。部署前请更换默认凭据、配置生产密钥，并接入真实的邮件/短信发送服务。
@@ -27,8 +27,8 @@
 ### 本地启动
 
 ```bash
-git clone https://github.com/Nicki518412/shadcn-mono.git
-cd shadcn-mono
+git clone https://github.com/nickiilord/shadova.git
+cd shadova
 
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env

@@ -95,7 +95,7 @@ describe("RequireAuth", () => {
 
     // AppLayout 侧边栏标题为渲染标志（navTree 空 → 内部路由 * → NotFoundPage）
     await waitFor(() => {
-      expect(screen.getByText("Panel")).toBeInTheDocument()
+      expect(screen.getByText("Shadova")).toBeInTheDocument()
     })
     // me 守卫查询 + 顶栏铃铛两个查询（未读数 + 最近 5 条）
     expect(fetchMock).toHaveBeenCalledTimes(3)

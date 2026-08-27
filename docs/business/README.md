@@ -1,4 +1,4 @@
-# 业务文档：RBAC 管理端（shadcn-mono）
+# 业务文档：RBAC 管理端（Shadova）
 
 > **定位**：本文件是仓库的业务权威文档，描述系统的**当前真实行为**，随代码演进维护。
 > 内容以 `packages/db/prisma/schema.prisma`（数据）、`packages/db/src/seed.ts`（种子）、`apps/api/src/routes/*`（接口与规则）、`packages/shared/src/permissions.ts`（权限算法）为准；历史设计文档与实施计划已归档至 `docs/archive/superpowers/`，不再作为事实来源。

@@ -86,7 +86,7 @@ describe("app routing", () => {
     }))
     render(<App />)
     // 侧边栏标题（AppLayout 渲染标志）
-    expect(await screen.findByText("Panel")).toBeInTheDocument()
+    expect(await screen.findByText("Shadova")).toBeInTheDocument()
     // Dashboard 页面（动态路由 component=dashboard → features/dashboard/page.tsx）
     expect(await screen.findByText(/欢迎回来/)).toBeInTheDocument()
   })
