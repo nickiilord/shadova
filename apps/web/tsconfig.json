@@ -4,8 +4,7 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "types": ["vite/client"],
-    "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] },
+    "paths": { "@/*": ["./src/*"] },
     "noEmit": true,
     // shadcn 官方组件（如 sonner.tsx）与 exactOptionalPropertyTypes 不兼容（上游 `as ToasterProps["theme"]`
     // 索引访问可选属性会并入 undefined，CLI --diff/--overwrite 无法修复上游产物）；
