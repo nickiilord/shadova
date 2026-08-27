@@ -27,7 +27,7 @@ export default defineConfig({
   // 两个服务：api（e2e 库）+ web（vite dev）；reuseExistingServer 允许复用本地已起的服务
   webServer: [
     {
-      command: "pnpm exec tsx src/index.ts",
+      command: "pnpm --filter @repo/shared build && pnpm --filter @repo/db build && pnpm exec tsx src/index.ts",
       cwd: "../apps/api",
       url: `${E2E_API_URL}/api/health`,
       reuseExistingServer: !process.env.CI,
