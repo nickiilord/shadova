@@ -109,6 +109,4 @@ shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React
 - `docs/database/README.md` — 数据库文档（权限语义速查 + 三方言差异表 + 切库步骤）
 - `AGENTS.md` — 本文件：仓库规则单一真相源（CLAUDE.md 仅保留一行索引，不维护副本）
 - `.agents/README.md` — skills 骨架规范 + 双目录同步约定（新增/修改 skill 前必读）
-- `.agents/skills/add-module`（同步 `.claude/skills/add-module`）— 新增业务模块总编排（入口，负责分发到执行层 skill）
-- `.agents/skills/add-page`（同步 `.claude/skills/add-page`）— 新增页面全流程（菜单 → 组件 → 权限码 → OpenAPI → 测试）
-- `.agents/skills/switch-database`（同步 `.claude/skills/switch-database`）— SQLite/MySQL/PostgreSQL 切换清单
+- **skills 清单**：`.agents/skills/`（与 `.claude/skills/` 同步，共 10 个）——入口为 `add-module`（新增业务模块编排）；其余为执行层（add-api-route / add-page / db-schema-change / add-e2e / seed-edit / shadcn-add / switch-database）与质量层（test-writing / pre-commit-check）；触发条件见各 SKILL.md frontmatter
