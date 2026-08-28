@@ -72,6 +72,7 @@ export default function UserPage(): JSX.Element {
   const [assignUser, setAssignUser] = useState<UserListItem | null>(null)
   const [deleteUser, setDeleteUser] = useState<UserListItem | null>(null)
   const [resetPasswordUser, setResetPasswordUser] = useState<UserListItem | null>(null)
+  const [statusUser, setStatusUser] = useState<UserListItem | null>(null)
   const [detailUser, setDetailUser] = useState<UserListItem | null>(null)
   const [departmentUser, setDepartmentUser] = useState<UserListItem | null>(null)
   const [departmentId, setDepartmentId] = useState("")
@@ -109,6 +110,14 @@ export default function UserPage(): JSX.Element {
   function confirmResetPassword(): void {
     if (!resetPasswordUser) return
     resetPasswordMutation.mutate(resetPasswordUser.id, { onSuccess: () => { setResetPasswordUser(null); } })
+  }
+
+  function confirmToggleStatus(): void {
+    if (!statusUser) return
+    updateMutation.mutate(
+      { id: statusUser.id, body: { status: !statusUser.status } },
+      { onSuccess: () => { setStatusUser(null); } },
+    )
   }
 
   return (
@@ -195,6 +204,7 @@ export default function UserPage(): JSX.Element {
               <TableHead>{t("nickname")}</TableHead>
               <TableHead>{t("email")}</TableHead>
               <TableHead>{t("department")}</TableHead>
+              <TableHead>{t("roles")}</TableHead>
               <TableHead>{t("status")}</TableHead>
               <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
@@ -216,6 +226,7 @@ export default function UserPage(): JSX.Element {
                     <TableCell>{user.nickname}</TableCell>
                     <TableCell>{user.email ?? "-"}</TableCell>
                     <TableCell>{user.department?.nameZh ?? "-"}</TableCell>
+                    <TableCell>{user.roles.map((role) => role.nameZh).join(", ") || "-"}</TableCell>
                     <TableCell>
                       <Badge variant={user.status ? "default" : "destructive"}>
                         {user.status ? t("enabled") : t("disabled")}
@@ -235,6 +246,11 @@ export default function UserPage(): JSX.Element {
                             }}
                           >
                             {t("edit")}
+                          </Button>
+                        </Permission>
+                        <Permission code={PERMISSIONS.userUpdate}>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => { setStatusUser(user); }}>
+                            {user.status ? t("disable") : t("enable")}
                           </Button>
                         </Permission>
                         <Permission code={PERMISSIONS.userUpdate}>
@@ -417,6 +433,31 @@ export default function UserPage(): JSX.Element {
               <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={confirmResetPassword} disabled={resetPasswordMutation.isPending}>
                 {resetPasswordMutation.isPending ? t("saving") : t("resetPassword")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      {statusUser && (
+        <AlertDialog defaultOpen onOpenChange={(open) => { if (!open) setStatusUser(null) }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{statusUser.status ? t("disableTitle") : t("enableTitle")}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {statusUser.status
+                  ? t("disableUserConfirm", { name: statusUser.nickname })
+                  : t("enableUserConfirm", { name: statusUser.nickname })}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+              <AlertDialogAction
+                variant={statusUser.status ? "destructive" : "default"}
+                onClick={confirmToggleStatus}
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending ? t("saving") : statusUser.status ? t("disable") : t("enable")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

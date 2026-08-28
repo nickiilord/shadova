@@ -51,9 +51,9 @@ test.describe("个人资料", () => {
     await loginPage.login(username, oldPassword)
     await loginPage.expectLoggedIn()
 
-    // 修改密码
+    // 修改密码（独立弹窗入口：用户菜单 → 修改密码）
     await layout.openUserMenu()
-    await adminPage.getByRole("menuitem", { name: /用户设置|User settings/i }).click()
+    await adminPage.getByRole("menuitem", { name: /修改密码|Change password/i }).click()
     const dialog = adminPage.getByRole("dialog")
     await dialog.getByLabel("当前密码").fill(oldPassword)
     await dialog.getByLabel("新密码").fill(newPassword)

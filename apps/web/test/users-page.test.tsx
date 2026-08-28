@@ -194,12 +194,20 @@ describe("UserPage", () => {
     })
     expect(screen.getByText("系统管理员")).toBeInTheDocument()
     expect(screen.getByText("zhangsan")).toBeInTheDocument()
-    expect(screen.getByText("启用")).toBeInTheDocument()
-    expect(screen.getByText("禁用")).toBeInTheDocument()
-    // 角色 Badge（管理员）；空邮箱/手机号/部门/角色渲染占位符（u1 部门空 + u2 四项空 = 5 处）
+    // 状态 Badge 按行断言（行内状态切换按钮文本同名，全屏 getByText 会 multiple match）
+    const adminRow = screen.getByText("admin").closest("tr")
+    if (!adminRow) throw new Error("找不到 admin 行")
+    expect(within(adminRow).getByText("启用")).toBeInTheDocument()
+    const zhangsanRow = screen.getByText("zhangsan").closest("tr")
+    if (!zhangsanRow) throw new Error("找不到 zhangsan 行")
+    expect(within(zhangsanRow).getByText("禁用")).toBeInTheDocument()
+    // 状态切换按钮随当前状态显示：启用行"禁用"、禁用行"启用"
+    expect(screen.getAllByRole("button", { name:"禁用" })).toHaveLength(1)
+    expect(screen.getAllByRole("button", { name:"启用" })).toHaveLength(1)
+    // 角色列（管理员）；空邮箱/部门/角色渲染占位符（u1 部门空 + u2 三项空 = 4 处）
     expect(screen.getByText("管理员")).toBeInTheDocument()
-    expect(screen.getAllByText("-")).toHaveLength(5)
-    // Permission 全量授权：新增/编辑/分配角色/删除按钮均渲染
+    expect(screen.getAllByText("-")).toHaveLength(4)
+    // Permission 全量授权：新增/编辑/禁用/分配角色/删除按钮均渲染
     expect(screen.getByRole("button", { name:"新增用户" })).toBeInTheDocument()
     expect(screen.getAllByRole("button", { name:"编辑" })).toHaveLength(2)
     expect(screen.getAllByRole("button", { name:"分配角色" })).toHaveLength(2)
@@ -243,7 +251,7 @@ describe("UserPage", () => {
     })
   })
 
-  it("编辑用户：PATCH 携带修改字段（密码省略、空邮箱/手机号转 null、roleIds 全量）", async () => {
+  it("编辑用户：PATCH 携带修改字段（密码省略、空邮箱/手机号转 null）", async () => {
     const fetchMock = createFetchMock()
     renderUserPage(fetchMock)
 
@@ -257,14 +265,11 @@ describe("UserPage", () => {
     fireEvent.click(screen.getByRole("button", { name:"保存" }))
 
     await waitFor(() => {
+      // 部分更新契约：状态/角色/部门由独立入口提交（禁用按钮/分配角色/分配部门弹窗），编辑只带基础字段
       expect(fetchBodies(fetchMock, "PATCH")).toContainEqual({
         nickname: "新昵称",
         email: null,
         telephone: null,
-        status: false,
-        roleIds: [],
-        // 部门未操作时提交 null（编辑表单部门下拉初始为空）
-        departmentId: null,
       })
     })
   })

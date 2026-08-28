@@ -44,6 +44,10 @@ export default defineConfig({
       url: "http://localhost:5173",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
+      // apps/web/.env 被 gitignore，CI 检出后不存在；直接注入避免 %VITE_APP_NAME% 未替换警告
+      env: {
+        VITE_APP_NAME: "shadova",
+      },
     },
   ],
 })

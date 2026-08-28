@@ -52,15 +52,12 @@ export class UsersPage {
     await expect(dialog).toBeHidden()
   }
 
-  /** 编辑用户启用状态（Base UI Switch：data-checked 为无值布尔属性，存在即勾选） */
+  /** 禁用/启用用户（独立按钮 + AlertDialog 确认；按钮文案随当前状态切换，role 为 alertdialog） */
   async setStatus(username: string, enabled: boolean): Promise<void> {
     const row = this.page.getByRole("row").filter({ hasText: username })
-    await row.getByRole("button", { name: "编辑" }).click()
-    const dialog = this.page.getByRole("dialog")
-    const statusSwitch = dialog.getByRole("switch")
-    const checked = (await statusSwitch.getAttribute("data-checked")) !== null
-    if (checked !== enabled) await statusSwitch.click()
-    await dialog.getByRole("button", { name: "保存" }).click()
+    await row.getByRole("button", { name: enabled ? "启用" : "禁用" }).click()
+    const dialog = this.page.getByRole("alertdialog")
+    await dialog.getByRole("button", { name: enabled ? "启用" : "禁用", exact: true }).click()
     await expect(dialog).toBeHidden()
   }
 
