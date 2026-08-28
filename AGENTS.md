@@ -72,6 +72,7 @@ shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React
 | `packages/shared` | 权限纯函数 `computeVisibleMenus`（**权限计算的唯一位置**，见设计文档 §6） |
 | `packages/db` | Prisma schema（运行时权威，全字段中文 docstring）+ 幂等种子 `src/seed.ts`（admin/Admin@123、菜单树、ADMIN/GUEST 角色） |
 | `packages/config` | 共享 `tsconfig.base.json` 与 eslint 配置（被各包继承） |
+| `.agents/skills/` / `.claude/skills/` | agent 技能双目录（跨工具读取前者，Claude Code 只扫描后者）；**两份必须同步提交**；骨架规范见 `.agents/README.md` |
 
 ## 常用命令（根目录执行）
 
@@ -106,5 +107,8 @@ shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React
 ## 文档索引
 
 - `docs/database/README.md` — 数据库文档（权限语义速查 + 三方言差异表 + 切库步骤）
-- `.claude/skills/add-page` — 新增页面全流程（菜单 → 组件 → 权限码 → OpenAPI → 测试）
-- `.claude/skills/switch-database` — SQLite/MySQL/PostgreSQL 切换清单
+- `AGENTS.md` — 本文件：仓库规则单一真相源（CLAUDE.md 仅保留一行索引，不维护副本）
+- `.agents/README.md` — skills 骨架规范 + 双目录同步约定（新增/修改 skill 前必读）
+- `.agents/skills/add-module`（同步 `.claude/skills/add-module`）— 新增业务模块总编排（入口，负责分发到执行层 skill）
+- `.agents/skills/add-page`（同步 `.claude/skills/add-page`）— 新增页面全流程（菜单 → 组件 → 权限码 → OpenAPI → 测试）
+- `.agents/skills/switch-database`（同步 `.claude/skills/switch-database`）— SQLite/MySQL/PostgreSQL 切换清单
