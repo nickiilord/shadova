@@ -467,6 +467,17 @@
           "roles"
         ]
       },
+      "UserDetail": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/UserListItem"
+          },
+          {
+            "type": "object",
+            "properties": {}
+          }
+        ]
+      },
       "UserPageResult": {
         "type": "object",
         "properties": {
@@ -483,17 +494,6 @@
         "required": [
           "list",
           "total"
-        ]
-      },
-      "UserDetail": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/UserListItem"
-          },
-          {
-            "type": "object",
-            "properties": {}
-          }
         ]
       },
       "ImportResult": {
@@ -3235,6 +3235,83 @@
           },
           "404": {
             "description": "菜单不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users/{id}/reset-password": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "密码重置成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/UserDetail"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "data",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登录",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "无权限",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorBody"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "用户不存在",
             "content": {
               "application/json": {
                 "schema": {

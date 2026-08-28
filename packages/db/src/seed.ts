@@ -11,6 +11,7 @@ interface MenuSeedInput {
   type: string
   path?: string
   component?: string
+  icon?: string
   permission?: string
   sort: number
   parentId?: string
@@ -23,8 +24,11 @@ async function upsertMenu(input: MenuSeedInput): Promise<string> {
         where: { nameZh: input.nameZh, parentId: input.parentId ?? null, path: input.path ?? null },
       })
   if (existing) {
-    if (input.nameEn !== undefined && existing.nameEn !== input.nameEn) {
-      await prisma.menu.update({ where: { id: existing.id }, data: { nameEn: input.nameEn } })
+    const updateData: { nameEn?: string; icon?: string | null } = {}
+    if (input.nameEn !== undefined && existing.nameEn !== input.nameEn) updateData.nameEn = input.nameEn
+    if (input.icon !== undefined && existing.icon !== input.icon) updateData.icon = input.icon
+    if (Object.keys(updateData).length > 0) {
+      await prisma.menu.update({ where: { id: existing.id }, data: updateData })
     }
     return existing.id
   }
@@ -36,6 +40,7 @@ async function upsertMenu(input: MenuSeedInput): Promise<string> {
       // exactOptionalPropertyTypes：可选参数 undefined 不可显式赋值，统一转 null
       path: input.path ?? null,
       component: input.component ?? null,
+      icon: input.icon ?? null,
       permission: input.permission ?? null,
       sort: input.sort,
       parentId: input.parentId ?? null,
@@ -60,19 +65,22 @@ async function upsertDepartment(nameZh: string, nameEn: string, parentId: string
 export async function runSeed(options: { resetAdminCredentials?: boolean } = {}): Promise<void> {
   try {
     // 1. 菜单树（与设计文档 §9 一致；nameEn 为英文展示名，en 语言时优先展示，未填回落 nameZh）
-    const dashboardId = await upsertMenu({ nameZh: "概览", nameEn: "Dashboard", type: "MENU", path: "/", component: "dashboard", sort: 0 })
+    const dashboardId = await upsertMenu({ nameZh: "概览", nameEn: "Dashboard", type: "MENU", path: "/", component: "dashboard", icon: "home", sort: 0 })
     // 系统管理无 permission/path 稳定键，按 nameZh+parentId 匹配：种子源码改名会静默新建（旧节点残留，需人工清理）；菜单管理页创建同名根节点会被误命中
-    const sysId = await upsertMenu({ nameZh: "系统管理", nameEn: "System", type: "DIR", sort: 100 })
+    const sysId = await upsertMenu({ nameZh: "系统管理", nameEn: "System", type: "DIR", icon: "settings", sort: 100 })
     const userMenuId = await upsertMenu({
       nameZh: "用户管理", nameEn: "Users", type: "MENU", path: "/system/user", component: "system/user",
+      icon: "users",
       permission: "system:user:query", sort: 1, parentId: sysId,
     })
     await upsertMenu({ nameZh: "用户新增", nameEn: "Add User", type: "BUTTON", permission: "system:user:create", sort: 1, parentId: userMenuId })
     await upsertMenu({ nameZh: "用户编辑", nameEn: "Edit User", type: "BUTTON", permission: "system:user:update", sort: 2, parentId: userMenuId })
     await upsertMenu({ nameZh: "用户删除", nameEn: "Delete User", type: "BUTTON", permission: "system:user:delete", sort: 3, parentId: userMenuId })
     await upsertMenu({ nameZh: "分配角色", nameEn: "Assign Roles", type: "BUTTON", permission: "system:user:assign-role", sort: 4, parentId: userMenuId })
+    await upsertMenu({ nameZh: "重置密码", nameEn: "Reset Password", type: "BUTTON", permission: "system:user:reset-password", sort: 5, parentId: userMenuId })
     const roleMenuId = await upsertMenu({
       nameZh: "角色管理", nameEn: "Roles", type: "MENU", path: "/system/role", component: "system/role",
+      icon: "user-cog",
       permission: "system:role:query", sort: 2, parentId: sysId,
     })
     await upsertMenu({ nameZh: "角色新增", nameEn: "Add Role", type: "BUTTON", permission: "system:role:create", sort: 1, parentId: roleMenuId })
@@ -81,6 +89,7 @@ export async function runSeed(options: { resetAdminCredentials?: boolean } = {})
     await upsertMenu({ nameZh: "分配权限", nameEn: "Grant Permissions", type: "BUTTON", permission: "system:role:assign", sort: 4, parentId: roleMenuId })
     const menuMenuId = await upsertMenu({
       nameZh: "菜单管理", nameEn: "Menus", type: "MENU", path: "/system/menu", component: "system/menu",
+      icon: "menu",
       permission: "system:menu:query", sort: 3, parentId: sysId,
     })
     await upsertMenu({ nameZh: "菜单新增", nameEn: "Add Menu", type: "BUTTON", permission: "system:menu:create", sort: 1, parentId: menuMenuId })
@@ -88,15 +97,18 @@ export async function runSeed(options: { resetAdminCredentials?: boolean } = {})
     await upsertMenu({ nameZh: "菜单删除", nameEn: "Delete Menu", type: "BUTTON", permission: "system:menu:delete", sort: 3, parentId: menuMenuId })
     await upsertMenu({
       nameZh: "日志管理", nameEn: "Logs", type: "MENU", path: "/system/log", component: "system/log",
+      icon: "server",
       permission: "system:log:query", sort: 4, parentId: sysId,
     })
     const sessionMenuId = await upsertMenu({
       nameZh: "会话管理", nameEn: "Sessions", type: "MENU", path: "/system/session", component: "system/session",
+      icon: "network",
       permission: "system:session:query", sort: 5, parentId: sysId,
     })
     await upsertMenu({ nameZh: "强制下线", nameEn: "Force Sign-out", type: "BUTTON", permission: "system:session:revoke", sort: 1, parentId: sessionMenuId })
     const dictMenuId = await upsertMenu({
       nameZh: "数据字典", nameEn: "Dictionary", type: "MENU", path: "/system/dict", component: "system/dict",
+      icon: "book-open",
       permission: "system:dict:query", sort: 6, parentId: sysId,
     })
     await upsertMenu({ nameZh: "字典新增", nameEn: "Add Dict Type", type: "BUTTON", permission: "system:dict:create", sort: 1, parentId: dictMenuId })
@@ -104,6 +116,7 @@ export async function runSeed(options: { resetAdminCredentials?: boolean } = {})
     await upsertMenu({ nameZh: "字典删除", nameEn: "Delete Dict Type", type: "BUTTON", permission: "system:dict:delete", sort: 3, parentId: dictMenuId })
     const configMenuId = await upsertMenu({
       nameZh: "参数配置", nameEn: "Parameters", type: "MENU", path: "/system/config", component: "system/config",
+      icon: "code",
       permission: "system:config:query", sort: 7, parentId: sysId,
     })
     await upsertMenu({ nameZh: "参数新增", nameEn: "Add Config", type: "BUTTON", permission: "system:config:create", sort: 1, parentId: configMenuId })
@@ -112,11 +125,13 @@ export async function runSeed(options: { resetAdminCredentials?: boolean } = {})
     // 通知中心为个人页面（查自己的通知，无查询权限码，同 Dashboard 先例）；发送通知按钮单独挂码
     const notificationMenuId = await upsertMenu({
       nameZh: "通知中心", nameEn: "Notifications", type: "MENU", path: "/system/notification", component: "system/notifications",
+      icon: "bell",
       sort: 8, parentId: sysId,
     })
     await upsertMenu({ nameZh: "发送通知", nameEn: "Send Notification", type: "BUTTON", permission: "system:notification:create", sort: 1, parentId: notificationMenuId })
     const deptMenuId = await upsertMenu({
       nameZh: "部门管理", nameEn: "Departments", type: "MENU", path: "/system/department", component: "system/department",
+      icon: "cloud",
       permission: "system:dept:query", sort: 9, parentId: sysId,
     })
     await upsertMenu({ nameZh: "部门新增", nameEn: "Add Department", type: "BUTTON", permission: "system:dept:create", sort: 1, parentId: deptMenuId })
@@ -124,6 +139,7 @@ export async function runSeed(options: { resetAdminCredentials?: boolean } = {})
     await upsertMenu({ nameZh: "部门删除", nameEn: "Delete Department", type: "BUTTON", permission: "system:dept:delete", sort: 3, parentId: deptMenuId })
     const announcementMenuId = await upsertMenu({
       nameZh: "公告管理", nameEn: "Announcements", type: "MENU", path: "/system/announcement", component: "system/announcement",
+      icon: "message-square",
       permission: "system:announcement:query", sort: 10, parentId: sysId,
     })
     await upsertMenu({ nameZh: "公告新增", nameEn: "Add Announcement", type: "BUTTON", permission: "system:announcement:create", sort: 1, parentId: announcementMenuId })
@@ -199,6 +215,11 @@ export async function runSeed(options: { resetAdminCredentials?: boolean } = {})
       where: { configKey: "user.password.minLength" },
       update: { configValue: "8", nameZh: "密码最小长度", nameEn: "Min Password Length", description: "登录/修改密码时密码的最小长度（示例数据，供演示参数配置用法）" },
       create: { configKey: "user.password.minLength", configValue: "8", nameZh: "密码最小长度", nameEn: "Min Password Length", description: "登录/修改密码时密码的最小长度（示例数据，供演示参数配置用法）" },
+    })
+    await prisma.config.upsert({
+      where: { configKey: "user.password.resetDefault" },
+      update: {},
+      create: { configKey: "user.password.resetDefault", configValue: "Admin@123", nameZh: "用户重置密码默认值", nameEn: "User Reset Password Default", description: "管理员重置用户密码时使用的默认密码" },
     })
 
     // 3.1 演示部门树：按 nameZh+parentId 幂等 upsert（无唯一键，匹配名称与上级）；admin 挂根部门

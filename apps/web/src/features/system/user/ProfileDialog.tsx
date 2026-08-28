@@ -1,14 +1,12 @@
 import { useState } from "react"
 import type { ChangeEvent, JSX, SyntheticEvent } from "react"
 import { useTranslation } from "react-i18next"
-import { useNavigate } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 import { UploadIcon, UserRoundIcon } from "lucide-react"
 
 import { api, apiErrorMessage, apiFormData } from "@/api/client"
-import { useAuth } from "@/auth/AuthProvider"
 import type { components, paths } from "@/api/schema"
 import { avatarUrl } from "@/lib/avatar"
 import { Button } from "@/components/ui/button"
@@ -27,7 +25,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 import { ME_QUERY_KEY } from "@/router/guards"
 
 /** PATCH /api/users/me 请求体（openapi-typescript 生成类型，随 schema.d.ts 自动同步） */
@@ -49,13 +46,9 @@ export function ProfileDialog({
 }): JSX.Element {
   const { t } = useTranslation("users")
   const queryClient = useQueryClient()
-  const auth = useAuth()
-  const navigate = useNavigate()
   const [nickname, setNickname] = useState(user.nickname)
   const [email, setEmail] = useState(user.email ?? "")
   const [telephone, setTelephone] = useState(user.telephone ?? "")
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
   // 新头像：选中文件后立即上传得服务端文件名 + 本地预览 URL；removeAvatar 标记移除旧头像
   const [avatarFile, setAvatarFile] = useState<{ filename: string; preview: string } | null>(null)
   const [removeAvatar, setRemoveAvatar] = useState(false)
@@ -96,10 +89,6 @@ export function ProfileDialog({
       setError(t("nicknameRequired"))
       return
     }
-    if (newPassword && !currentPassword) {
-      setError(t("currentPasswordRequired"))
-      return
-    }
     setError(null)
     setPending(true)
     const body: MeUpdateInput = {
@@ -112,17 +101,6 @@ export function ProfileDialog({
     else if (avatarFile) body.avatar = avatarFile.filename
     try {
       await api<unknown>("/users/me", { method: "PATCH", body: JSON.stringify(body) })
-      if (newPassword) {
-        // 改密码成功后后端吊销全部 refresh token——主动登出并提示重新登录
-        await api<unknown>("/auth/change-password", {
-          method: "POST",
-          body: JSON.stringify({ currentPassword, newPassword }),
-        })
-        await auth.logout()
-        toast.success(t("passwordChangedReLogin"))
-        void navigate("/login")
-        return
-      }
       toast.success(t("profileUpdated"))
       void queryClient.invalidateQueries({ queryKey: ME_QUERY_KEY })
       onClose()
@@ -134,6 +112,7 @@ export function ProfileDialog({
   }
 
   return (
+    <>
     <Dialog
       defaultOpen
       onOpenChange={(open) => {
@@ -234,40 +213,6 @@ export function ProfileDialog({
               </FieldContent>
             </Field>
           </FieldGroup>
-          {/* 修改密码：留空不修改；填写新密码则必须验证当前密码 */}
-          <Separator />
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="profile-current-password">{t("currentPassword")}</FieldLabel>
-              <FieldContent>
-                <Input
-                  id="profile-current-password"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(event) => {
-                    setCurrentPassword(event.target.value)
-                  }}
-                  placeholder={t("currentPasswordPlaceholder")}
-                  autoComplete="current-password"
-                />
-              </FieldContent>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="profile-new-password">{t("newPassword")}</FieldLabel>
-              <FieldContent>
-                <Input
-                  id="profile-new-password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(event) => {
-                    setNewPassword(event.target.value)
-                  }}
-                  placeholder={t("newPasswordPlaceholder")}
-                  autoComplete="new-password"
-                />
-              </FieldContent>
-            </Field>
-          </FieldGroup>
           <DialogFooter>
             <Button
               type="button"
@@ -285,5 +230,6 @@ export function ProfileDialog({
         </form>
       </DialogContent>
     </Dialog>
+    </>
   )
 }

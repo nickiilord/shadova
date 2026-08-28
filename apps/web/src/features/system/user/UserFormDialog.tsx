@@ -15,7 +15,6 @@ import {
 import {
   Field,
   FieldContent,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
@@ -76,7 +75,7 @@ export function UserFormDialog({
   const [telephone, setTelephone] = useState(user?.telephone ?? "")
   const [password, setPassword] = useState("")
   const [status, setStatus] = useState(user?.status ?? true)
-  const [departmentId, setDepartmentId] = useState(user?.department?.id ?? "")
+  const [departmentId, setDepartmentId] = useState(user?.department?.id ?? "none")
   const departmentOptions: { id: string; name: string; depth: number }[] = []
   collectDepartmentOptions(buildDepartmentTree(departmentsQuery.data ?? []), 0, departmentOptions)
   const [roleIds, setRoleIds] = useState<Set<string>>(
@@ -111,17 +110,13 @@ export function UserFormDialog({
     }
     setError(null)
     // 部门：留空 = null（未分配/清空），否则传选中部门 id
-    const department: string | null = departmentId === "" ? null : departmentId
+    const department: string | null = departmentId === "none" ? null : departmentId
     if (isEdit && user) {
       const body: UserUpdateInput = {
         nickname: nickname.trim(),
         email: email.trim() === "" ? null : email.trim(),
         telephone: telephone.trim() === "" ? null : telephone.trim(),
-        status,
-        roleIds: [...roleIds],
-        departmentId: department,
       }
-      if (password) body.password = password
       updateMutation.mutate({ id: user.id, body }, { onSuccess: () => { onClose(); } })
     } else {
       const body: UserCreateInput = {
@@ -178,7 +173,6 @@ export function UserFormDialog({
                   disabled={isEdit}
                   placeholder={t("usernamePlaceholder")}
                 />
-                {isEdit && <FieldDescription>{t("usernameImmutable")}</FieldDescription>}
               </FieldContent>
             </Field>
             <Field>
@@ -221,6 +215,7 @@ export function UserFormDialog({
                 />
               </FieldContent>
             </Field>
+            {user == null && (
             <Field>
               <FieldLabel htmlFor="user-form-password">{t("password")}</FieldLabel>
               <FieldContent>
@@ -231,21 +226,22 @@ export function UserFormDialog({
                   onChange={(event) => {
                     setPassword(event.target.value)
                   }}
-                  placeholder={isEdit ? t("passwordPlaceholderEdit") : t("passwordPlaceholderCreate")}
+                  placeholder={t("passwordPlaceholderCreate")}
                   autoComplete="new-password"
                 />
               </FieldContent>
             </Field>
-            <Field orientation="horizontal" className="gap-2">
+            )}
+            {user == null && (<Field orientation="horizontal" className="gap-2">
               <Switch
                 id="user-form-status"
                 checked={status}
                 onCheckedChange={setStatus}
               />
               <FieldLabel htmlFor="user-form-status">{t("enabled")}</FieldLabel>
-            </Field>
+            </Field>)}
             {/* 所属部门：树形缩进选项；留空 = 未分配（编辑时清空已挂部门） */}
-            <Field>
+            {user == null && (<Field>
               <FieldLabel htmlFor="user-form-department">{t("department")}</FieldLabel>
               <FieldContent>
                 <Select
@@ -263,7 +259,7 @@ export function UserFormDialog({
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("departmentNone")}</SelectItem>
+                    <SelectItem value="none">{t("departmentNone")}</SelectItem>
                     {departmentOptions.map((option) => (
                       <SelectItem key={option.id} value={option.id} label={option.name}>
                         <span style={{ paddingLeft: `${String(option.depth * 12)}px` }}>
@@ -274,8 +270,8 @@ export function UserFormDialog({
                   </SelectContent>
                 </Select>
               </FieldContent>
-            </Field>
-            <Field>
+            </Field>)}
+            {user == null && (<Field>
               <FieldLabel>{t("roles")}</FieldLabel>
               <FieldContent>
                 {rolesQuery.isPending ? (
@@ -302,7 +298,7 @@ export function UserFormDialog({
                   </div>
                 )}
               </FieldContent>
-            </Field>
+            </Field>)}
           </FieldGroup>
           </div>
           <DialogFooter>

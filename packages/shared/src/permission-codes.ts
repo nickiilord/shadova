@@ -5,6 +5,7 @@ export const PERMISSIONS = {
   userUpdate: "system:user:update",
   userDelete: "system:user:delete",
   userAssignRole: "system:user:assign-role",
+  userResetPassword: "system:user:reset-password",
   roleQuery: "system:role:query",
   roleCreate: "system:role:create",
   roleUpdate: "system:role:update",

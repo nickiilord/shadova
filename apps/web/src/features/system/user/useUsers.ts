@@ -80,6 +80,16 @@ export function useDeleteUserMutation() {
   })
 }
 
+export function useResetPasswordMutation() {
+  const queryClient = useQueryClient()
+  const { t } = useTranslation("users")
+  return useMutation({
+    mutationFn: (id: string) => api<unknown>(`/users/${id}/reset-password`, { method: "POST" }),
+    onSuccess: () => { void queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY }); toast.success(t("resetPasswordSuccess")) },
+    onError: (error) => { toast.error(apiErrorMessage(error)) },
+  })
+}
+
 /** 分配角色（PUT /api/users/{id}/roles，全量替换） */
 export function useAssignRolesMutation() {
   const queryClient = useQueryClient()

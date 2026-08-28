@@ -46,6 +46,8 @@
   "passwordMinLength": "密码至少 8 个字符",
   "assignRolesDesc": "为用户「{{name}}」配置角色（可多选），保存后将覆盖原有角色",
   "userSettings": "用户设置",
+  "changePassword": "修改密码",
+  "changePasswordDesc": "验证当前密码并设置新密码",
   "profileDesc": "修改你的个人资料（昵称 / 邮箱 / 手机号）",
   "profileUpdated": "资料已更新",
   "export": "导出",
@@ -79,5 +81,10 @@
   "newPasswordPlaceholder": "至少 8 个字符，留空不修改",
   "currentPasswordRequired": "填写新密码时必须输入当前密码",
   "passwordChangedReLogin": "密码已修改，请重新登录",
+  "resetPassword": "重置密码",
+  "resetPasswordConfirm": "确定要重置用户 {{name}} 的密码吗？",
+  "resetPasswordSuccess": "密码已重置",
+  "detail": "详情",
+  "assignDepartment": "分配部门",
   "importFailedRow": "第 {{row}} 行"
 }

@@ -46,6 +46,8 @@
   "passwordMinLength": "Password must be at least 8 characters",
   "assignRolesDesc": "Configure roles for user \"{{name}}\" (multi-select). Saving will replace the existing roles.",
   "userSettings": "User Settings",
+  "changePassword": "Change password",
+  "changePasswordDesc": "Verify your current password and set a new one",
   "profileDesc": "Edit your profile (nickname / email / phone)",
   "profileUpdated": "Profile updated",
   "export": "Export",
@@ -79,5 +81,10 @@
   "newPasswordPlaceholder": "At least 8 characters; leave blank to keep",
   "currentPasswordRequired": "Current password is required when setting a new one",
   "passwordChangedReLogin": "Password changed. Please sign in again",
+  "resetPassword": "Reset password",
+  "resetPasswordConfirm": "Reset {{name}}'s password?",
+  "resetPasswordSuccess": "Password reset",
+  "detail": "Details",
+  "assignDepartment": "Assign department",
   "importFailedRow": "Row {{row}}"
 }

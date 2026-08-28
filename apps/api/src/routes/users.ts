@@ -137,6 +137,32 @@ export function userRoutes(cfg: AppConfig): OpenAPIHono {
 
   app.openapi(
     createRoute({
+      method: "post",
+      path: "/api/users/{id}/reset-password",
+      middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userResetPassword)],
+      security: bearerSecurity,
+      request: { params: idParamSchema },
+      responses: {
+        200: { description: "密码重置成功", ...okBody(userDetailSchema) },
+        401: { description: "未登录", content: { "application/json": { schema: errorBodySchema } } },
+        403: { description: "无权限", content: { "application/json": { schema: errorBodySchema } } },
+        404: { description: "用户不存在", content: { "application/json": { schema: errorBodySchema } } },
+      },
+    }),
+    async (c) => {
+      const { id } = c.req.valid("param")
+      const user = await getUserDetail(id)
+      const config = await prisma.config.findUnique({ where: { configKey: "user.password.resetDefault" }, select: { configValue: true, status: true } })
+      const password = config?.status === true ? config.configValue : "Admin@123"
+      if (password.length < 8 || password.length > 128) throw badRequest("重置密码配置无效")
+      const updated = await prisma.user.update({ where: { id }, data: { passwordHash: await hashPassword(password) } })
+      await prisma.refreshToken.deleteMany({ where: { userId: id } })
+      return c.json({ code: 0, data: toUserDetail({ ...user, ...updated }), message: "ok" }, 200)
+    },
+  )
+
+  app.openapi(
+    createRoute({
       method: "get",
       path: "/api/users",
       middleware: [authenticate(cfg), requirePermission(PERMISSIONS.userQuery)],

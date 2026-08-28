@@ -52,6 +52,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { ProfileDialog } from "@/features/system/user/ProfileDialog"
+import { ChangePasswordDialog } from "@/features/system/user/ChangePasswordDialog"
 import { avatarUrl } from "@/lib/avatar"
 import { menuDisplayName } from "@/localization/menuName"
 import { APP_NAME } from "@/config"
@@ -239,6 +240,7 @@ export default function AppLayout(): JSX.Element {
   const location = useLocation()
   const { data: me } = useMeQuery()
   const [profileOpen, setProfileOpen] = useState(false)
+  const [passwordOpen, setPasswordOpen] = useState(false)
 
   // 路由在 me 数据就绪后生成（navTree 变化 → 重建）；RequireAuth 已拉取同 key 查询，共享缓存
   const sourceNavTree = me?.navTree
@@ -338,6 +340,14 @@ export default function AppLayout(): JSX.Element {
                     <SettingsIcon />
                     {t("userSettings")}
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setPasswordOpen(true)
+                    }}
+                  >
+                    <SettingsIcon />
+                    {t("changePassword")}
+                  </DropdownMenuItem>
                   {/* 退出登录用主题默认配色（不用 destructive 红色——跟随明暗主题） */}
                   <DropdownMenuItem
                     onClick={() => {
@@ -390,6 +400,9 @@ export default function AppLayout(): JSX.Element {
             setProfileOpen(false)
           }}
         />
+      )}
+      {passwordOpen && (
+        <ChangePasswordDialog onClose={() => { setPasswordOpen(false); }} />
       )}
     </>
   )

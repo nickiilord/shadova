@@ -1622,6 +1622,74 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/users/{id}/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 密码重置成功 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            code: number;
+                            data: components["schemas"]["UserDetail"];
+                            message: string;
+                        };
+                    };
+                };
+                /** @description 未登录 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorBody"];
+                    };
+                };
+                /** @description 无权限 */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorBody"];
+                    };
+                };
+                /** @description 用户不存在 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorBody"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users": {
         parameters: {
             query?: never;
@@ -4234,11 +4302,11 @@ export interface components {
             createdAt: string;
             roles: components["schemas"]["UserRole"][];
         };
+        UserDetail: components["schemas"]["UserListItem"] & Record<string, never>;
         UserPageResult: {
             list: components["schemas"]["UserListItem"][];
             total: number;
         };
-        UserDetail: components["schemas"]["UserListItem"] & Record<string, never>;
         ImportResult: {
             successCount: number;
             failedRows: {

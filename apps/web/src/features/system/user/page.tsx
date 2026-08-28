@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   Empty,
   EmptyContent,
@@ -46,23 +47,16 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { usePagination } from "@/hooks/usePagination"
-import i18n from "@/localization/i18n"
-import { menuDisplayName, roleDisplayName } from "@/localization/menuName"
+import { useDepartmentsQuery } from "../department/useDepartments"
+
 import { RoleAssignDialog } from "./RoleAssignDialog"
+import { UserDetailDialog } from "./UserDetailDialog"
 import { UserFormDialog } from "./UserFormDialog"
 import { ImportDialog } from "./ImportDialog"
-import { useDeleteUserMutation, useExportUsersMutation, useUsersQuery } from "./useUsers"
+import { useDeleteUserMutation, useExportUsersMutation, useResetPasswordMutation, useUpdateUserMutation, useUsersQuery } from "./useUsers"
 import type { UserListItem } from "./useUsers"
 
 const PAGE_SIZE = 10
-
-/** 后端返回 ISO 时间字符串；非法值原样展示（兜底，正常不会走到） */
-function formatDateTime(value: string): string {
-  const date = new Date(value)
-  return Number.isNaN(date.getTime())
-    ? value
-    : date.toLocaleString(i18n.language === "zh" ? "zh-CN" : "en-US", { hour12: false })
-}
 
 /**
  * 用户管理页（Task 20）：分页列表 + 关键词搜索 + 新增/编辑 Dialog + 删除 AlertDialog +
@@ -77,8 +71,15 @@ export default function UserPage(): JSX.Element {
   const [editingUser, setEditingUser] = useState<UserListItem | null>(null)
   const [assignUser, setAssignUser] = useState<UserListItem | null>(null)
   const [deleteUser, setDeleteUser] = useState<UserListItem | null>(null)
+  const [resetPasswordUser, setResetPasswordUser] = useState<UserListItem | null>(null)
+  const [detailUser, setDetailUser] = useState<UserListItem | null>(null)
+  const [departmentUser, setDepartmentUser] = useState<UserListItem | null>(null)
+  const [departmentId, setDepartmentId] = useState("")
+  const departmentsQuery = useDepartmentsQuery()
+  const updateMutation = useUpdateUserMutation()
   const [importOpen, setImportOpen] = useState(false)
   const deleteMutation = useDeleteUserMutation()
+  const resetPasswordMutation = useResetPasswordMutation()
   const exportMutation = useExportUsersMutation(keyword)
 
   const { data, isLoading, isError, error } = useUsersQuery(page, pageSize, keyword)
@@ -103,6 +104,11 @@ export default function UserPage(): JSX.Element {
   function confirmDelete(): void {
     if (!deleteUser) return
     deleteMutation.mutate(deleteUser.id, { onSuccess: () => { setDeleteUser(null); } })
+  }
+
+  function confirmResetPassword(): void {
+    if (!resetPasswordUser) return
+    resetPasswordMutation.mutate(resetPasswordUser.id, { onSuccess: () => { setResetPasswordUser(null); } })
   }
 
   return (
@@ -188,11 +194,8 @@ export default function UserPage(): JSX.Element {
               <TableHead>{t("username")}</TableHead>
               <TableHead>{t("nickname")}</TableHead>
               <TableHead>{t("email")}</TableHead>
-              <TableHead>{t("telephone")}</TableHead>
               <TableHead>{t("department")}</TableHead>
               <TableHead>{t("status")}</TableHead>
-              <TableHead>{t("roles")}</TableHead>
-              <TableHead>{t("createdAt")}</TableHead>
               <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
@@ -200,7 +203,7 @@ export default function UserPage(): JSX.Element {
             {isLoading
               ? Array.from({ length: 5 }, (_, rowIndex) => (
                   <TableRow key={rowIndex}>
-                    {Array.from({ length: 9 }, (_, cellIndex) => (
+                    {Array.from({ length: 6 }, (_, cellIndex) => (
                       <TableCell key={cellIndex}>
                         <Skeleton className="h-4 w-16" />
                       </TableCell>
@@ -212,29 +215,15 @@ export default function UserPage(): JSX.Element {
                     <TableCell>{user.username}</TableCell>
                     <TableCell>{user.nickname}</TableCell>
                     <TableCell>{user.email ?? "-"}</TableCell>
-                    <TableCell>{user.telephone ?? "-"}</TableCell>
-                    <TableCell>{user.department ? menuDisplayName(user.department) : "-"}</TableCell>
+                    <TableCell>{user.department?.nameZh ?? "-"}</TableCell>
                     <TableCell>
                       <Badge variant={user.status ? "default" : "destructive"}>
                         {user.status ? t("enabled") : t("disabled")}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {user.roles.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {user.roles.map((role) => (
-                            <Badge key={role.id} variant="outline">
-                              {roleDisplayName(role)}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{formatDateTime(user.createdAt)}</TableCell>
-                    <TableCell>
                       <div className="flex justify-end gap-1">
+                        <Button type="button" variant="ghost" size="sm" onClick={() => { setDetailUser(user); }}>{t("detail")}</Button>
                         <Permission code={PERMISSIONS.userUpdate}>
                           <Button
                             type="button"
@@ -248,6 +237,9 @@ export default function UserPage(): JSX.Element {
                             {t("edit")}
                           </Button>
                         </Permission>
+                        <Permission code={PERMISSIONS.userUpdate}>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => { setDepartmentUser(user); setDepartmentId(user.department?.id ?? "none") }}>{t("assignDepartment")}</Button>
+                        </Permission>
                         <Permission code={PERMISSIONS.userAssignRole}>
                           <Button
                             type="button"
@@ -259,6 +251,9 @@ export default function UserPage(): JSX.Element {
                           >
                             {t("assignRoles")}
                           </Button>
+                        </Permission>
+                        <Permission code={PERMISSIONS.userResetPassword}>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => { setResetPasswordUser(user); }}>{t("resetPassword")}</Button>
                         </Permission>
                         <Permission code={PERMISSIONS.userDelete}>
                           <Button
@@ -409,6 +404,34 @@ export default function UserPage(): JSX.Element {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+      )}
+
+      {resetPasswordUser && (
+        <AlertDialog defaultOpen onOpenChange={(open) => { if (!open) setResetPasswordUser(null) }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("resetPassword")}</AlertDialogTitle>
+              <AlertDialogDescription>{t("resetPasswordConfirm", { name: resetPasswordUser.username })}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmResetPassword} disabled={resetPasswordMutation.isPending}>
+                {resetPasswordMutation.isPending ? t("saving") : t("resetPassword")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+      {detailUser && (<UserDetailDialog user={detailUser} onClose={() => { setDetailUser(null); }} />)}
+      {departmentUser && (
+        <Dialog defaultOpen onOpenChange={(open) => { if (!open) setDepartmentUser(null) }}>
+          <DialogContent><DialogHeader><DialogTitle>{t("assignDepartment")}</DialogTitle></DialogHeader>
+          <select className="w-full rounded-md border px-3 py-2" value={departmentId} onChange={(e) => { setDepartmentId(e.target.value); }}>
+            <option value="">{t("departmentNone")}</option>
+            {(departmentsQuery.data ?? []).map((department) => <option key={department.id} value={department.id}>{department.nameZh}</option>)}
+          </select>
+          <DialogFooter><Button variant="outline" onClick={() => { setDepartmentUser(null); }}>{t("cancel")}</Button><Button disabled={updateMutation.isPending} onClick={() => { updateMutation.mutate({ id: departmentUser.id, body: { departmentId: departmentId === "" ? null : departmentId } }, { onSuccess: () => { setDepartmentUser(null); } }); }}>{t("save")}</Button></DialogFooter>
+        </DialogContent></Dialog>
       )}
     </div>
   )
