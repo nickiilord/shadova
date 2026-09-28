@@ -12,24 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { usePortalSiteQuery, useSavePortalSiteMutation } from "./usePortalSite"
-import type { PortalSiteUpdateInput } from "./usePortalSite"
-
-interface PortalSiteData {
-  siteName: string
-  siteTagline: string | null
-  contactEmail: string | null
-  contactPhone: string | null
-  whatsappNumber: string | null
-  facebookUrl: string | null
-  instagramUrl: string | null
-  youtubeUrl: string | null
-  telegramUrl: string | null
-  privacyPolicyUrl: string | null
-  footerText: string | null
-  seoTitle: string | null
-  seoDescription: string | null
-  seoKeywords: string | null
-}
+import type { PortalSite, PortalSiteUpdateInput } from "./usePortalSite"
 
 /** 表单态：可空字段在界面统一表现为空串，提交时再还原为 null（避免空串覆盖数据库中的“未配置”） */
 interface SiteForm {
@@ -50,7 +33,7 @@ interface SiteForm {
 }
 
 /** 服务端返回 → 表单态（null 一律展示为空串） */
-function toSiteForm(site: PortalSiteData): SiteForm {
+function toSiteForm(site: PortalSite): SiteForm {
   return {
     siteName: site.siteName,
     siteTagline: site.siteTagline ?? "",
@@ -239,7 +222,6 @@ export default function PortalSitePage(): JSX.Element {
           <Card>
             <CardHeader>
               <CardTitle>{t("socialSection")}</CardTitle>
-              <CardDescription>{t("urlPlaceholder")}</CardDescription>
             </CardHeader>
             <CardContent>
               <FieldGroup>

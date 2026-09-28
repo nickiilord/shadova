@@ -95,6 +95,16 @@ describe("portal", () => {
       expect(body.data.sections).toEqual([])
       expect(body.data.banners).toEqual([])
     })
+
+    it("单次返回有条数上限（公开免鉴权接口，防批量导入后首屏无界膨胀）", async () => {
+      await prisma.portalSection.createMany({
+        data: Array.from({ length: 51 }, (_, index) => ({ title: `批量区块 ${String(index)}`, sort: index })),
+      })
+      const res = await createApp().request("/api/portal/home")
+      expect(res.status).toBe(200)
+      const body = (await res.json()) as { data: { sections: unknown[] } }
+      expect(body.data.sections).toHaveLength(50)
+    })
   })
 
   describe("公开留言提交（无需登录）", () => {

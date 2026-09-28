@@ -5,7 +5,8 @@ import { toast } from "sonner"
 import { api, apiErrorMessage } from "@/api/client"
 import type { components, paths } from "@/api/schema"
 
-type PortalSite = components["schemas"]["PortalSite"]
+/** 站点配置 DTO（openapi-typescript 生成类型，随契约自动同步；页面表单直接复用它） */
+export type PortalSite = components["schemas"]["PortalSite"]
 
 /** PUT /api/portal/site 请求体（openapi-typescript 生成类型，随契约自动同步） */
 export type PortalSiteUpdateInput = NonNullable<

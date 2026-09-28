@@ -114,18 +114,24 @@ export async function savePortalSite(fields: PortalSitePatch): Promise<PortalSit
 /**
  * 公开首页聚合：站点配置 + 启用区块 + 启用 Banner（并发三次查询，各自按 sort 升序）。
  * 聚合只服务公开首屏（一次请求取齐）；管理端列表走各自的分页接口，两者不共用查询。
+ * 单次返回上限：该接口公开且免鉴权，加上限避免批量导入后每个访客的首屏响应无界膨胀
+ * （Banner 是图片，几十条就足以拖垮首屏）。
  */
+const PORTAL_HOME_MAX_ITEMS = 50
+
 export async function readPortalHome(): Promise<PortalHome> {
   const [site, sections, banners] = await Promise.all([
     readPortalSite(),
     prisma.portalSection.findMany({
       where: { status: true },
       orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
+      take: PORTAL_HOME_MAX_ITEMS,
       select: { id: true, icon: true, title: true, description: true, sort: true },
     }),
     prisma.portalBanner.findMany({
       where: { status: true },
       orderBy: [{ sort: "asc" }, { createdAt: "asc" }],
+      take: PORTAL_HOME_MAX_ITEMS,
       select: { id: true, title: true, imageUrl: true, linkUrl: true, sort: true },
     }),
   ])
