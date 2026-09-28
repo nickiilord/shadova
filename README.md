@@ -8,6 +8,9 @@
     <img src="https://img.shields.io/badge/pnpm-9.12.0-orange.svg" alt="pnpm 9.12.0">
     <img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg" alt="Strict TypeScript">
   </p>
+  <p>
+    <a href="https://codespaces.new/nickiilord/shadova"><img src="https://github.com/codespaces/badge.svg" alt="Open in GitHub Codespaces"></a>
+  </p>
   <p>简体中文 · <a href="./README.en.md">English</a> · <a href="./README.ja.md">日本語</a></p>
 </div>
 
@@ -41,6 +44,18 @@
 ![Swagger UI（由 zod schema 生成）](./docs/images/api-docs.png)
 
 ## 快速开始
+
+### 在线试用（无需本地环境）
+
+点击顶部 **Open in GitHub Codespaces** 徽标，GitHub 会创建一个已装好依赖、建好库并灌入演示数据的云端环境，三个服务自动启动并转发端口：
+
+| 端口 | 服务 |
+|---|---|
+| 5173 | 管理端（`admin / Admin@123`） |
+| 5174 | 公开门户 |
+| 3001 | API（Swagger UI 在 `/api/docs`） |
+
+> 端口默认 private（仅自己可见），在编辑器的 **PORTS** 面板右键可改为 Public 分享给他人；Codespaces 闲置 30 分钟后自动停止，重新打开即恢复。
 
 ### 环境要求
 

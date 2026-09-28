@@ -8,6 +8,9 @@
     <img src="https://img.shields.io/badge/pnpm-9.12.0-orange.svg" alt="pnpm 9.12.0">
     <img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg" alt="Strict TypeScript">
   </p>
+  <p>
+    <a href="https://codespaces.new/nickiilord/shadova"><img src="https://github.com/codespaces/badge.svg" alt="Open in GitHub Codespaces"></a>
+  </p>
   <p><a href="./README.md">简体中文</a> · English · <a href="./README.ja.md">日本語</a></p>
 </div>
 
@@ -41,6 +44,18 @@
 ![Swagger UI (generated from zod schemas)](./docs/images/api-docs.png)
 
 ## Quick Start
+
+### Try it online (no local setup)
+
+Click the **Open in GitHub Codespaces** badge above: GitHub creates a cloud environment with dependencies installed, the database created and demo data seeded. All three services start automatically with forwarded ports:
+
+| Port | Service |
+|---|---|
+| 5173 | Admin app (`admin / Admin@123`) |
+| 5174 | Public portal |
+| 3001 | API (Swagger UI at `/api/docs`) |
+
+> Forwarded ports are private by default; right-click in the editor's **PORTS** panel to make them public and share. Codespaces stops after 30 minutes idle and resumes when you reopen it.
 
 ### Requirements
 

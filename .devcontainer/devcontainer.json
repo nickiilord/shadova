@@ -1,0 +1,28 @@
+{
+  "name": "Shadova — RBAC 管理端 monorepo",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  // 2 核 4GB：够跑 api + 两个 vite dev server（GitHub 免费额度为 120 core-hours/月）
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "4gb"
+  },
+  // 首次创建容器：corepack + 生成 .env + 装依赖 + 建库 + 种子（见 setup.sh）
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  // 每次启动容器：后台拉起 api(3001) / web(5173) / portal(5174)（见 start.sh）
+  "postStartCommand": "bash .devcontainer/start.sh",
+  // 端口全部设为 public：Codespaces 转发后外部可直接访问（默认 private 需登录 GitHub）
+  "forwardPorts": [3001, 5173, 5174],
+  "portsAttributes": {
+    "3001": { "label": "API (Hono)", "visibility": "public" },
+    "5173": { "label": "管理端 Web", "onAutoForward": "openBrowser", "visibility": "public" },
+    "5174": { "label": "公开门户 Portal", "visibility": "public" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint"],
+      "settings": {
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  }
+}

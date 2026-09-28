@@ -8,6 +8,9 @@
     <img src="https://img.shields.io/badge/pnpm-9.12.0-orange.svg" alt="pnpm 9.12.0">
     <img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg" alt="Strict TypeScript">
   </p>
+  <p>
+    <a href="https://codespaces.new/nickiilord/shadova"><img src="https://github.com/codespaces/badge.svg" alt="Open in GitHub Codespaces"></a>
+  </p>
   <p><a href="./README.md">简体中文</a> · <a href="./README.en.md">English</a> · 日本語</p>
 </div>
 
@@ -41,6 +44,18 @@
 ![Swagger UI（zod schema から生成）](./docs/images/api-docs.png)
 
 ## クイックスタート
+
+### オンラインで試す（ローカル環境不要）
+
+上部の **Open in GitHub Codespaces** バッジをクリックすると、依存関係のインストール・DB 作成・デモデータ投入まで済んだクラウド環境が作成され、3 つのサービスが自動起動してポートが転送されます。
+
+| ポート | サービス |
+|---|---|
+| 5173 | 管理画面（`admin / Admin@123`） |
+| 5174 | 公開ポータル |
+| 3001 | API（Swagger UI は `/api/docs`） |
+
+> 転送ポートは既定で private（自分のみ）です。エディタの **PORTS** パネルで右クリックすると Public に変更して共有できます。Codespaces は 30 分アイドルで自動停止し、再度開けば復帰します。
 
 ### 必要環境
 
