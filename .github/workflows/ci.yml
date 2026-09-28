@@ -66,6 +66,80 @@ jobs:
       - name: Build
         run: pnpm turbo build
 
+  # 完全按 README「快速开始」执行一次，不复用任何预置产物。
+  # quality / e2e 都跑在"已构建、已配置"的环境里，发现不了"文档步骤与代码要求不一致"——
+  # 这个 job 就是那道防线（曾出现 seed 依赖 dist、dev 缺依赖构建两处卡死新用户的问题）。
+  quickstart:
+    name: Quick start (fresh-clone smoke test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      # README 步骤：复制 .env（这些文件被 gitignore，检出后不存在）
+      - name: Copy env files
+        run: |
+          cp apps/api/.env.example apps/api/.env
+          cp apps/web/.env.example apps/web/.env
+          cp packages/db/.env.example packages/db/.env
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # README 步骤：建库 + 种子（不预先 build，验证脚本自身可用）
+      - name: Push schema and seed
+        run: |
+          pnpm --filter @repo/db db:push
+          pnpm --filter @repo/db seed
+
+      # README 步骤：启动开发服务，轮询等待三个端就绪
+      - name: Start dev servers
+        run: |
+          pnpm dev > /tmp/dev.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3001/api/health > /dev/null \
+              && curl -sf http://localhost:5173 > /dev/null \
+              && curl -sf http://localhost:5174 > /dev/null; then
+              echo "OK 三个端已就绪（第 ${i} 次探测）"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "FAIL 服务未在 120 秒内就绪"
+          exit 1
+
+      # 冒烟：登录（验证数据库与种子）+ 经代理访问（验证同源链路，而非仅直连 API）
+      - name: Smoke test
+        run: |
+          status=$(curl -s -o /tmp/login.json -w "%{http_code}" \
+            -X POST http://localhost:3001/api/auth/login \
+            -H "content-type: application/json" \
+            -d '{"username":"admin","password":"Admin@123"}')
+          echo "登录接口 HTTP $status"
+          [ "$status" = "200" ] || { echo "FAIL 登录失败"; cat /tmp/login.json; exit 1; }
+
+          curl -sf http://localhost:5173/api/health > /dev/null
+          echo "OK 管理端 Vite 代理 /api 可达"
+          curl -sf http://localhost:5174/api/portal/home > /dev/null
+          echo "OK 门户 Vite 代理 /api 可达"
+
+      - name: Show dev log on failure
+        if: failure()
+        run: tail -100 /tmp/dev.log
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
