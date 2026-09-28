@@ -1,21 +1,44 @@
 <div align="center">
   <h1>Shadova</h1>
   <p><strong>一个契约驱动、可测试的全栈 RBAC 管理端 monorepo。</strong></p>
+  <p>
+    <a href="https://github.com/nickiilord/shadova/actions/workflows/ci.yml"><img src="https://github.com/nickiilord/shadova/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT">
+    <img src="https://img.shields.io/badge/node-%3E%3D22-brightgreen.svg" alt="Node >=22">
+    <img src="https://img.shields.io/badge/pnpm-9.12.0-orange.svg" alt="pnpm 9.12.0">
+    <img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg" alt="Strict TypeScript">
+  </p>
   <p>简体中文 · <a href="./README.en.md">English</a> · <a href="./README.ja.md">日本語</a></p>
 </div>
+
+![管理端 · 用户管理](./docs/images/admin-users.png)
 
 `Shadova` 将 React 管理端、Hono API、Prisma 数据层与共享 RBAC 规则组合在一个 Turborepo 中。它支持本地 JWT、邮箱/手机动态码和 Clerk 登录，并从同一份 Zod/OpenAPI 契约生成接口文档与前端类型。
 
 > [!IMPORTANT]
 > `admin / Admin@123` 仅用于本地演示。部署前请更换默认凭据、配置生产密钥，并接入真实的邮件/短信发送服务。
 
-## 设计原则
+## 为什么选它
 
-- **契约优先**：运行时校验、OpenAPI 文档和前端类型来自同一套路由 schema。
-- **权限单一事实源**：多角色权限严格交集，算法位于 `packages/shared`，前后端复用。
-- **数据库可移植**：Prisma schema 支持 SQLite、MySQL 和 PostgreSQL，避免依赖单一方言。
-- **安全默认值**：生产 JWT 密钥强制校验，OTP 数据库只保存哈希，未配置生产 Sender 时失败关闭。
-- **可验证交付**：GitHub Actions、Vitest、Testing Library、ESLint、Husky 和 commitlint 组成质量门。
+| 特性 | 说明 |
+|---|---|
+| **契约驱动** | 一份 zod schema 同时产出运行时校验、OpenAPI 文档与前后端 TypeScript 类型；改接口不会漏改前端（`openapi.json` → 两端 `schema.d.ts` 由 pre-commit 自动同步） |
+| **权限严格交集** | 多角色权限取**交集**而非并集，无超管例外；算法单一实现于 `packages/shared`，菜单、动态路由、页面按钮与接口中间件共用同一语义 |
+| **数据库可移植** | 一份 Prisma schema 兼容 SQLite / MySQL / PostgreSQL，规避方言特性（不用 enum、不用递归 CTE、不用 JSONB） |
+| **垂直切片完整** | 用户 / 角色 / 菜单 / 部门 / 字典 / 参数 / 公告 / 通知 / 日志 / 会话 / 文件 共 11 个模块，每个都带 API + 页面 + 集成测试 |
+| **附带公开门户** | `apps/portal` 是独立的免登录门户应用（品牌区 / 轮播 / 图文区块 / 留言表单），与管理端共用同一个后端 |
+| **安全默认值** | 生产环境强制校验 JWT 密钥长度、OTP 只存哈希、未配置生产 Sender 时失败关闭 |
+| **可验证交付** | Vitest 三层测试 + Playwright E2E（52 个跨层用例）+ GitHub Actions 五道门（test / lint / typecheck / build / e2e） |
+
+> 与常见的 Next.js admin 模板相比，差别在于：后端是 **Hono**（可部署到边缘运行时），额外提供**公开门户应用**，以及**三方言可移植**的数据层。
+
+## 界面预览
+
+| 管理端 · 角色授权（权限树） | 公开门户 |
+|---|---|
+| ![角色授权](./docs/images/admin-role-grant.png) | ![门户首页](./docs/images/portal-home.png) |
+
+![Swagger UI（由 zod schema 生成）](./docs/images/api-docs.png)
 
 ## 快速开始
 

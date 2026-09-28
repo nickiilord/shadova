@@ -1,21 +1,44 @@
 <div align="center">
   <h1>Shadova</h1>
   <p><strong>契約駆動でテスト可能な、フルスタック RBAC 管理画面モノレポ。</strong></p>
+  <p>
+    <a href="https://github.com/nickiilord/shadova/actions/workflows/ci.yml"><img src="https://github.com/nickiilord/shadova/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT">
+    <img src="https://img.shields.io/badge/node-%3E%3D22-brightgreen.svg" alt="Node >=22">
+    <img src="https://img.shields.io/badge/pnpm-9.12.0-orange.svg" alt="pnpm 9.12.0">
+    <img src="https://img.shields.io/badge/TypeScript-strict-3178c6.svg" alt="Strict TypeScript">
+  </p>
   <p><a href="./README.md">简体中文</a> · <a href="./README.en.md">English</a> · 日本語</p>
 </div>
+
+![管理画面 · ユーザー](./docs/images/admin-users.png)
 
 `Shadova` は、React 管理画面、Hono API、Prisma データ層、共有 RBAC ルールを 1 つの Turborepo にまとめたプロジェクトです。ローカル JWT、メール/SMS ワンタイムコード、Clerk 認証に対応し、同じ Zod/OpenAPI 契約から API ドキュメントとフロントエンド型を生成します。
 
 > [!IMPORTANT]
 > `admin / Admin@123` はローカルデモ専用です。デプロイ前に既定の認証情報を変更し、本番用シークレットと実際のメール/SMS 配信サービスを設定してください。
 
-## 設計方針
+## Shadova を選ぶ理由
 
-- **契約優先**：実行時検証、OpenAPI、フロントエンド型を同じ route schema から生成します。
-- **認可の一元化**：複数ロールの厳密な積集合を `packages/shared` に置き、Web と API で共有します。
-- **移植可能なデータ層**：Prisma で SQLite、MySQL、PostgreSQL に対応します。
-- **安全なデフォルト**：本番 JWT を検証し、OTP はハッシュのみ保存し、本番 Sender 未設定時は fail-closed になります。
-- **検証可能な変更**：GitHub Actions、Vitest、Testing Library、ESLint、Husky、commitlint を品質ゲートとして使います。
+| 項目 | 内容 |
+|---|---|
+| **契約駆動** | 1 つの zod schema から実行時検証・OpenAPI ドキュメント・両アプリの TypeScript 型を生成します。契約成果物は pre-commit hook で再生成されるため、フロントエンドが黙って乖離しません |
+| **認可は厳密な積集合** | 有効権限は割り当てられた全ロールの**積集合**で、スーパー管理者の例外はありません。実装は `packages/shared` に一本化し、メニュー・動的ルート・ボタン・API ミドルウェアで同じ意味論を共有します |
+| **移植可能なデータ層** | 1 つの Prisma schema が SQLite / MySQL / PostgreSQL で動作し、方言固有機能を避けます（enum・再帰 CTE・JSONB を使わない） |
+| **垂直スライスの完成度** | 11 モジュール（ユーザー / ロール / メニュー / 部門 / 辞書 / パラメータ / お知らせ / 通知 / ログ / セッション / ファイル）。各モジュールに API + ページ + 統合テストを用意 |
+| **公開ポータル同梱** | `apps/portal` はログイン不要の独立ポータルアプリ（ヒーロー・カルーセル・コンテンツセクション・お問い合わせフォーム）で、同じバックエンドを共有します |
+| **安全なデフォルト** | 本番 JWT シークレットの長さを検証し、OTP はハッシュのみ保存し、本番 Sender 未設定時は fail-closed になります |
+| **検証可能な変更** | 3 層の Vitest + Playwright E2E（52 のクロスレイヤーケース）+ GitHub Actions の 5 ゲート（test / lint / typecheck / build / e2e） |
+
+> 一般的な Next.js 製 admin テンプレートとの違い：バックエンドは **Hono**（エッジランタイムに配備可能）、**公開ポータルアプリ**を同梱、データ層は **3 方言で移植可能**です。
+
+## スクリーンショット
+
+| 管理画面 · 権限付与 | 公開ポータル |
+|---|---|
+| ![権限付与](./docs/images/admin-role-grant.png) | ![ポータル](./docs/images/portal-home.png) |
+
+![Swagger UI（zod schema から生成）](./docs/images/api-docs.png)
 
 ## クイックスタート
 
