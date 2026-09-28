@@ -107,6 +107,7 @@ export function SectionFormDialog({
                 <FieldContent>
                   <Input
                     id="portal-section-title"
+                    maxLength={64}
                     value={title}
                     onChange={(event) => {
                       setTitle(event.target.value)
@@ -120,6 +121,7 @@ export function SectionFormDialog({
                 <FieldContent>
                   <Textarea
                     id="portal-section-description"
+                    maxLength={1000}
                     value={description}
                     onChange={(event) => {
                       setDescription(event.target.value)

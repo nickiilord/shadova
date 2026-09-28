@@ -460,13 +460,17 @@ export function portalRoutes(cfg: AppConfig): OpenAPIHono {
     async (c) => {
       const { id } = c.req.valid("param")
       const fields = c.req.valid("json")
-      const found = await prisma.portalMessage.findUnique({ where: { id }, select: { id: true } })
+      const found = await prisma.portalMessage.findUnique({
+        where: { id },
+        select: { id: true, handledAt: true },
+      })
       if (!found) throw notFound("留言不存在")
       const data: Prisma.PortalMessageUpdateInput = {}
       if (fields.status !== undefined) {
         data.status = fields.status
-        // 状态与处理时间同步流转：转 HANDLED 记录处理时间，退回 PENDING 清空
-        data.handledAt = fields.status === "HANDLED" ? new Date() : null
+        // 处理时间只在状态真正跃迁时维护：转 HANDLED 记录时刻（已记录则保留原值），退回 PENDING 清空。
+        // 若无条件写成 new Date()，仅补写内部备注的保存会把「处理时间」刷成当前时间。
+        data.handledAt = fields.status === "HANDLED" ? (found.handledAt ?? new Date()) : null
       }
       if (fields.remark !== undefined) data.remark = fields.remark
       const updated = await prisma.portalMessage.update({ where: { id }, data })

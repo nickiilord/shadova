@@ -157,6 +157,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Input
                       id="portal-site-name"
+                      maxLength={191}
                       value={form.siteName}
                       onChange={(event) => {
                         update("siteName", event.target.value)
@@ -170,6 +171,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Input
                       id="portal-site-tagline"
+                      maxLength={191}
                       value={form.siteTagline}
                       onChange={(event) => {
                         update("siteTagline", event.target.value)
@@ -193,6 +195,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Input
                       id="portal-site-email"
+                      maxLength={191}
                       value={form.contactEmail}
                       onChange={(event) => {
                         update("contactEmail", event.target.value)
@@ -206,6 +209,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Input
                       id="portal-site-phone"
+                      maxLength={64}
                       value={form.contactPhone}
                       onChange={(event) => {
                         update("contactPhone", event.target.value)
@@ -219,6 +223,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Input
                       id="portal-site-whatsapp"
+                      maxLength={64}
                       value={form.whatsappNumber}
                       onChange={(event) => {
                         update("whatsappNumber", event.target.value)
@@ -252,6 +257,7 @@ export default function PortalSitePage(): JSX.Element {
                       <Input
                         id={`portal-site-${field}`}
                         value={form[field]}
+                        maxLength={512}
                         onChange={(event) => {
                           update(field, event.target.value)
                         }}
@@ -275,6 +281,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Input
                       id="portal-site-privacy"
+                      maxLength={512}
                       value={form.privacyPolicyUrl}
                       onChange={(event) => {
                         update("privacyPolicyUrl", event.target.value)
@@ -288,6 +295,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Textarea
                       id="portal-site-footer"
+                      maxLength={2000}
                       value={form.footerText}
                       onChange={(event) => {
                         update("footerText", event.target.value)
@@ -302,6 +310,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Input
                       id="portal-site-seo-title"
+                      maxLength={191}
                       value={form.seoTitle}
                       onChange={(event) => {
                         update("seoTitle", event.target.value)
@@ -315,6 +324,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Textarea
                       id="portal-site-seo-description"
+                      maxLength={1000}
                       value={form.seoDescription}
                       onChange={(event) => {
                         update("seoDescription", event.target.value)
@@ -329,6 +339,7 @@ export default function PortalSitePage(): JSX.Element {
                   <FieldContent>
                     <Input
                       id="portal-site-seo-keywords"
+                      maxLength={500}
                       value={form.seoKeywords}
                       onChange={(event) => {
                         update("seoKeywords", event.target.value)

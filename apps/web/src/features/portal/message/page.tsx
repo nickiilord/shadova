@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input"
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -67,7 +68,7 @@ export default function PortalMessagePage(): JSX.Element {
   }
 
   function changeStatus(value: string | null): void {
-    // radix Select 的 value 可为 null（清空）；值域外的取值一律回落到「全部」
+    // Base UI Select 的 value 可为 null（清空）；值域外的取值一律回落到「全部」
     setStatus(value === "PENDING" || value === "HANDLED" ? value : "")
     setPage(1)
   }
@@ -224,20 +225,53 @@ export default function PortalMessagePage(): JSX.Element {
                 }}
               />
             </PaginationItem>
-            {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
-              <PaginationItem key={pageNumber}>
-                <PaginationLink
-                  href="#"
-                  isActive={pageNumber === page}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    setPage(pageNumber)
-                  }}
-                >
-                  {pageNumber}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+            {totalPages > 7 ? (
+              // 页数过多时截断为「首页 + 省略号 + 末页」（prev/next 仍可逐页翻），避免渲染上百个页码链接
+              <>
+                <PaginationItem>
+                  <PaginationLink
+                    href="#"
+                    isActive={page === 1}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      setPage(1)
+                    }}
+                  >
+                    1
+                  </PaginationLink>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationEllipsis />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationLink
+                    href="#"
+                    isActive={page === totalPages}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      setPage(totalPages)
+                    }}
+                  >
+                    {totalPages}
+                  </PaginationLink>
+                </PaginationItem>
+              </>
+            ) : (
+              Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+                <PaginationItem key={pageNumber}>
+                  <PaginationLink
+                    href="#"
+                    isActive={pageNumber === page}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      setPage(pageNumber)
+                    }}
+                  >
+                    {pageNumber}
+                  </PaginationLink>
+                </PaginationItem>
+              ))
+            )}
             <PaginationItem>
               <PaginationNext
                 href="#"

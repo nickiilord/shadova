@@ -190,6 +190,32 @@ describe("portal", () => {
       expect(row?.contactEmail).toBe("hi@example.com")
       expect(row?.contactPhone).toBe("010-12345678")
     })
+
+    it("并发保存不同字段互不覆盖：UPDATE 只含已提交字段", async () => {
+      const app = createApp()
+      const auth = await authHeaders(ADMIN_USERNAME)
+
+      // 若实现写成「读当前值 → 合并 → 写回完整行」，后写者会拿自己读到的旧快照覆盖先写者的字段。
+      // 只写已提交字段时，两个不相交的补丁无论执行顺序如何都不会互相覆盖（断言与时序无关）。
+      const [first, second] = await Promise.all([
+        app.request("/api/portal/site", {
+          method: "PUT",
+          headers: auth,
+          body: JSON.stringify({ siteName: "并发站点" }),
+        }),
+        app.request("/api/portal/site", {
+          method: "PUT",
+          headers: auth,
+          body: JSON.stringify({ contactEmail: "concurrent@example.com" }),
+        }),
+      ])
+      expect(first.status).toBe(200)
+      expect(second.status).toBe(200)
+
+      const saved = await prisma.portalConfig.findFirst()
+      expect(saved?.siteName).toBe("并发站点")
+      expect(saved?.contactEmail).toBe("concurrent@example.com")
+    })
   })
 
   describe("图文区块与 Banner 管理", () => {
@@ -297,6 +323,28 @@ describe("portal", () => {
       const removed = await app.request(`/api/portal/messages/${String(target?.id)}`, { method: "DELETE", headers: auth })
       expect(removed.status).toBe(200)
       expect(await prisma.portalMessage.count()).toBe(1)
+    })
+
+    it("已处理的留言再次保存（仅补写备注）不刷新处理时间", async () => {
+      const handledAt = new Date("2026-01-01T00:00:00.000Z")
+      await prisma.portalMessage.create({
+        data: { name: "丙", contact: "c@example.com", content: "内容", status: "HANDLED", handledAt },
+      })
+      const app = createApp()
+      const auth = await authHeaders(ADMIN_USERNAME)
+      const target = await prisma.portalMessage.findFirst()
+
+      const res = await app.request(`/api/portal/messages/${String(target?.id)}`, {
+        method: "PATCH",
+        headers: auth,
+        body: JSON.stringify({ status: "HANDLED", remark: "补写内部备注" }),
+      })
+      expect(res.status).toBe(200)
+
+      const row = await prisma.portalMessage.findUnique({ where: { id: String(target?.id) } })
+      expect(row?.remark).toBe("补写内部备注")
+      // 状态未跃迁 → 处理时间必须保持原值（无条件 new Date() 会让此处失败）
+      expect(row?.handledAt?.toISOString()).toBe(handledAt.toISOString())
     })
   })
 

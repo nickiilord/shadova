@@ -107,6 +107,7 @@ export function BannerFormDialog({
                 <FieldContent>
                   <Input
                     id="portal-banner-title"
+                    maxLength={64}
                     value={title}
                     onChange={(event) => {
                       setTitle(event.target.value)
@@ -120,6 +121,7 @@ export function BannerFormDialog({
                 <FieldContent>
                   <Input
                     id="portal-banner-image"
+                    maxLength={512}
                     value={imageUrl}
                     onChange={(event) => {
                       setImageUrl(event.target.value)
@@ -133,6 +135,7 @@ export function BannerFormDialog({
                 <FieldContent>
                   <Input
                     id="portal-banner-link"
+                    maxLength={512}
                     value={linkUrl}
                     onChange={(event) => {
                       setLinkUrl(event.target.value)

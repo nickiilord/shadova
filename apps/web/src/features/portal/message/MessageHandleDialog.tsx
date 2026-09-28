@@ -122,6 +122,7 @@ export function MessageHandleDialog({
                 <FieldContent>
                   <Textarea
                     id="portal-message-remark"
+                    maxLength={500}
                     value={remark}
                     onChange={(event) => {
                       setRemark(event.target.value)
