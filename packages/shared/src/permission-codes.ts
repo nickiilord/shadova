@@ -35,6 +35,20 @@ export const PERMISSIONS = {
   announcementCreate: "system:announcement:create",
   announcementUpdate: "system:announcement:update",
   announcementDelete: "system:announcement:delete",
+  // 门户（Portal）：公开首页内容与运营数据的后台维护；留言由访客提交，管理端无 create
+  portalSiteQuery: "portal:site:query",
+  portalSiteUpdate: "portal:site:update",
+  portalSectionQuery: "portal:section:query",
+  portalSectionCreate: "portal:section:create",
+  portalSectionUpdate: "portal:section:update",
+  portalSectionDelete: "portal:section:delete",
+  portalBannerQuery: "portal:banner:query",
+  portalBannerCreate: "portal:banner:create",
+  portalBannerUpdate: "portal:banner:update",
+  portalBannerDelete: "portal:banner:delete",
+  portalMessageQuery: "portal:message:query",
+  portalMessageUpdate: "portal:message:update",
+  portalMessageDelete: "portal:message:delete",
 } as const
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]

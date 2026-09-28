@@ -18,12 +18,25 @@ export default defineConfig({
   reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "line",
   globalSetup: "./global-setup.ts",
   use: {
-    baseURL: "http://localhost:5173",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  // 会话由 fixtures.ts 的 adminPage 逐用例独立登录（refresh token 单活轮换，不可跨用例复用）
-  projects: [{ name: "chromium", testMatch: /\.spec\.ts/ }],
+  // 两个前端应用各一个 project：
+  // admin = 管理端（5173，会话由 fixtures.ts 的 adminPage 逐用例独立登录，refresh token 单活轮换不可跨用例复用）
+  // portal = 公开门户（5174，无登录态）
+  projects: [
+    {
+      name: "admin",
+      testMatch: /\.spec\.ts/,
+      testIgnore: /16-portal\/portal-visitor\.spec\.ts/,
+      use: { baseURL: "http://localhost:5173" },
+    },
+    {
+      name: "portal",
+      testMatch: /16-portal\/portal-visitor\.spec\.ts/,
+      use: { baseURL: "http://localhost:5174" },
+    },
+  ],
   // 两个服务：api（e2e 库）+ web（vite dev）；reuseExistingServer 允许复用本地已起的服务
   webServer: [
     {
@@ -48,6 +61,13 @@ export default defineConfig({
       env: {
         VITE_APP_NAME: "shadova",
       },
+    },
+    {
+      command: "pnpm exec vite --port 5174 --strictPort",
+      cwd: "../apps/portal",
+      url: "http://localhost:5174",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
     },
   ],
 })

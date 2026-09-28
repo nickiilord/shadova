@@ -51,13 +51,13 @@ model User {
   /// 站内通知记录（用户删除时级联删除）
   notifications Notification[]
   /// 所属部门（部门删除时置空，不级联删用户）
-  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 }
 
 /// 部门表（组织架构树；仅组织归属，不参与权限交集计算）
 model Department {
   /// 主键（cuid 全局唯一）
-  id        String   @id @default(cuid())
+  id        String       @id @default(cuid())
   /// 中文名称（zh 界面展示）
   nameZh    String
   /// 英文名称（en 界面展示，未填回落 nameZh）
@@ -65,13 +65,13 @@ model Department {
   /// 上级部门 ID（null=根部门）
   parentId  String?
   /// 排序值（同层展示顺序）
-  sort      Int      @default(0)
+  sort      Int          @default(0)
   /// 启用状态（false=禁用）
-  status    Boolean  @default(true)
+  status    Boolean      @default(true)
   /// 创建时间（UTC）
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
   /// 更新时间（UTC）
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime     @updatedAt
   /// 子部门（父部门删除时级联删除——onDelete 定义在 parent 引用侧）
   children  Department[] @relation("DepartmentChildren")
   /// 上级部门
@@ -200,25 +200,25 @@ model RefreshToken {
 /// 动态码（邮箱/手机号一次性验证码，OTP 登录用）
 model OtpCode {
   /// 主键（cuid 全局唯一）
-  id           String    @id @default(cuid())
+  id         String    @id @default(cuid())
   /// 渠道（EMAIL 邮箱 / TELEPHONE 手机号）
-  channel      String
+  channel    String
   /// 目标地址（邮箱地址或手机号）
-  target       String
+  target     String
   /// 验证码哈希（sha256，不存明文）
-  codeHash     String
+  codeHash   String
   /// 过期时间（5 分钟）
-  expiresAt    DateTime
+  expiresAt  DateTime
   /// 已尝试次数（上限 5 次）
-  attempts     Int       @default(0)
+  attempts   Int       @default(0)
   /// 消费时间（null=未消费）
-  consumedAt   DateTime?
+  consumedAt DateTime?
   /// 创建时间（UTC）
-  createdAt    DateTime  @default(now())
+  createdAt  DateTime  @default(now())
   /// 关联用户 ID（可空，未登录场景无关联）
-  userId       String?
+  userId     String?
   /// 关联用户
-  user         User?     @relation(fields: [userId], references: [id])
+  user       User?     @relation(fields: [userId], references: [id])
 
   /// 复合索引（每次 send/login 按 channel+target 查询最新记录，避免全表扫描）
   @@index([channel, target, createdAt])
@@ -252,9 +252,9 @@ model LoginLog {
 /// 字典类型表（数据字典的类型定义，如 user_status；字典项见 DictItem）
 model DictType {
   /// 主键（cuid 全局唯一）
-  id          String    @id @default(cuid())
+  id          String     @id @default(cuid())
   /// 类型编码（程序引用用，如 user_status）
-  typeCode    String    @unique
+  typeCode    String     @unique
   /// 类型中文名称
   nameZh      String
   /// 类型英文名称（en 界面展示，未填回落 nameZh）
@@ -262,13 +262,13 @@ model DictType {
   /// 类型描述
   description String?
   /// 启用状态（false=禁用）
-  status      Boolean   @default(true)
+  status      Boolean    @default(true)
   /// 排序值（列表展示顺序）
-  sort        Int       @default(0)
+  sort        Int        @default(0)
   /// 创建时间（UTC）
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime   @default(now())
   /// 更新时间（UTC）
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime   @updatedAt
   /// 字典项（删除类型时级联删除）
   items       DictItem[]
 }
@@ -359,23 +359,23 @@ model OperationLog {
 /// 站内通知表（系统/管理员发送，按接收用户隔离；发送方不落库，仅接收方可见）
 model Notification {
   /// 主键（cuid 全局唯一）
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   /// 接收用户 ID
   userId    String
   /// 通知类型（预留分类，当前统一 SYSTEM）
-  type      String   @default("SYSTEM")
+  type      String    @default("SYSTEM")
   /// 通知标题
   title     String
   /// 通知内容
   content   String
   /// 是否已读（false=未读，顶栏徽标计数）
-  isRead    Boolean  @default(false)
+  isRead    Boolean   @default(false)
   /// 已读时间（标记已读时记录，未读为 null）
   readAt    DateTime?
   /// 创建时间（UTC）
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   /// 接收用户（用户删除时级联删除通知）
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   /// 复合索引（按用户分页查询 + 未读数统计）
   @@index([userId, isRead, createdAt])
@@ -397,5 +397,116 @@ model Announcement {
   updatedAt DateTime @updatedAt
 
   /// 索引（首页 latest 按 createdAt 倒序查询）
+  @@index([createdAt])
+}
+
+/// 门户站点配置表（单行：主键固定为 "portal"，全局唯一一份；公开首页与后台站点配置页共用）
+model PortalConfig {
+  /// 主键（固定单行主键 "portal"；无新增接口，服务层一律按此键 upsert）
+  id               String   @id @default("portal")
+  /// 站点名称（公开首页品牌区标题，SEO 标题缺省回落值）
+  siteName         String
+  /// 站点标语（品牌区副标题，可空）
+  siteTagline      String?
+  /// 联系邮箱
+  contactEmail     String?
+  /// 联系电话
+  contactPhone     String?
+  /// WhatsApp 号码（纯号码或带国家码，界面直接展示）
+  whatsappNumber   String?
+  /// Facebook 主页链接（MySQL 下需 @db.VarChar(512)，切库清单见 docs/database/README.md）
+  facebookUrl      String?
+  /// Instagram 主页链接（MySQL 下需 @db.VarChar(512)）
+  instagramUrl     String?
+  /// YouTube 频道链接（MySQL 下需 @db.VarChar(512)）
+  youtubeUrl       String?
+  /// Telegram 联系链接（MySQL 下需 @db.VarChar(512)）
+  telegramUrl      String?
+  /// 隐私政策链接（页脚展示；MySQL 下需 @db.VarChar(512)）
+  privacyPolicyUrl String?
+  /// 页脚文案（版权/备案等；MySQL 下需 @db.Text）
+  footerText       String?
+  /// SEO 标题（搜索引擎与浏览器标题）
+  seoTitle         String?
+  /// SEO 描述（搜索引擎摘要；MySQL 下需 @db.Text）
+  seoDescription   String?
+  /// SEO 关键词（逗号分隔；MySQL 下需 @db.Text）
+  seoKeywords      String?
+  /// 创建时间（UTC）
+  createdAt        DateTime @default(now())
+  /// 更新时间（UTC）
+  updatedAt        DateTime @updatedAt
+}
+
+/// 门户图文区块表（公开首页的价值主张卡片：图标 + 标题 + 描述，按 sort 展示启用的）
+model PortalSection {
+  /// 主键（cuid 全局唯一）
+  id          String   @id @default(cuid())
+  /// 图标名（packages/shared 的 PORTAL_ICON_NAMES 白名单取值，空则不渲染图标）
+  icon        String?
+  /// 区块标题
+  title       String
+  /// 区块描述（MySQL 下需 @db.Text）
+  description String?
+  /// 排序值（升序展示）
+  sort        Int      @default(0)
+  /// 启用状态（false=不在公开首页展示）
+  status      Boolean  @default(true)
+  /// 创建时间（UTC）
+  createdAt   DateTime @default(now())
+  /// 更新时间（UTC）
+  updatedAt   DateTime @updatedAt
+
+  /// 索引（公开首页按启用 + 排序查询）
+  @@index([status, sort])
+}
+
+/// 门户 Banner 表（公开首页轮播图：外链图片 + 可选跳转链接，不经服务端存储）
+model PortalBanner {
+  /// 主键（cuid 全局唯一）
+  id        String   @id @default(cuid())
+  /// Banner 标题（图片主文案，同时作为无障碍替代文本）
+  title     String
+  /// 图片地址（外链 URL；MySQL 下需 @db.VarChar(512)）
+  imageUrl  String
+  /// 点击跳转链接（空则不跳转；MySQL 下需 @db.VarChar(512)）
+  linkUrl   String?
+  /// 排序值（升序展示）
+  sort      Int      @default(0)
+  /// 启用状态（false=不在公开首页展示）
+  status    Boolean  @default(true)
+  /// 创建时间（UTC）
+  createdAt DateTime @default(now())
+  /// 更新时间（UTC）
+  updatedAt DateTime @updatedAt
+
+  /// 索引（公开首页按启用 + 排序查询）
+  @@index([status, sort])
+}
+
+/// 门户留言反馈表（访客在公开首页提交，后台只做收单与处理状态流转，无回复回流）
+model PortalMessage {
+  /// 主键（cuid 全局唯一）
+  id        String    @id @default(cuid())
+  /// 访客姓名
+  name      String
+  /// 联系方式（邮箱或电话，访客自填）
+  contact   String
+  /// 留言内容（MySQL 下需 @db.Text）
+  content   String
+  /// 处理状态（PENDING=待处理 / HANDLED=已处理；字符串 + zod 校验，不用 Prisma enum）
+  status    String    @default("PENDING")
+  /// 内部备注（后台处理时填写，不对访客展示；MySQL 下需 @db.Text）
+  remark    String?
+  /// 处理时间（标记已处理时记录，待处理为 null）
+  handledAt DateTime?
+  /// 提交时间（UTC）
+  createdAt DateTime  @default(now())
+  /// 更新时间（UTC）
+  updatedAt DateTime  @updatedAt
+
+  /// 复合索引（后台按状态筛选 + 提交时间倒序分页）
+  @@index([status, createdAt])
+  /// 索引（全量列表按提交时间倒序分页）
   @@index([createdAt])
 }

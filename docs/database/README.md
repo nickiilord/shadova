@@ -55,5 +55,10 @@ Prisma 的 `String` 在 MySQL 下默认映射 `VARCHAR(191)`。以下字段的�
 | Config.description / DictType.description / Role.description | 255 | `@db.Text`（或 `@db.VarChar(255)`） |
 | OtpCode.target | 255 | `@db.VarChar(255)` |
 | RefreshToken/LoginLog/OperationLog.userAgent | 无上限（UA 字符串） | `@db.VarChar(512)` |
+| PortalConfig.*Url（facebook/instagram/youtube/telegram/privacyPolicy） | 512 | `@db.VarChar(512)` |
+| PortalConfig.footerText / seoDescription / seoKeywords | 2000 / 1000 / 500 | `@db.Text` |
+| PortalSection.description | 1000 | `@db.Text` |
+| PortalBanner.imageUrl / linkUrl | 512 | `@db.VarChar(512)` |
+| PortalMessage.content / remark | 1000 / 500 | `@db.Text` |
 
 未列入的字段 zod 上限均 ≤191 或已做截断（OperationLog.requestBody 截断 180），无需处理。

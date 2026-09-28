@@ -146,6 +146,38 @@ export async function runSeed(options: { resetAdminCredentials?: boolean } = {})
     await upsertMenu({ nameZh: "公告编辑", nameEn: "Edit Announcement", type: "BUTTON", permission: "system:announcement:update", sort: 2, parentId: announcementMenuId })
     await upsertMenu({ nameZh: "公告删除", nameEn: "Delete Announcement", type: "BUTTON", permission: "system:announcement:delete", sort: 3, parentId: announcementMenuId })
 
+    // 门户管理（Portal）：公开首页 apps/portal 的内容与运营数据维护；留言由访客提交，管理端无新增码
+    const portalId = await upsertMenu({ nameZh: "门户管理", nameEn: "Portal", type: "DIR", icon: "globe", sort: 200 })
+    const portalSiteMenuId = await upsertMenu({
+      nameZh: "站点配置", nameEn: "Site Settings", type: "MENU", path: "/portal/site", component: "portal/site",
+      icon: "settings-2",
+      permission: "portal:site:query", sort: 1, parentId: portalId,
+    })
+    await upsertMenu({ nameZh: "保存站点配置", nameEn: "Save Site Settings", type: "BUTTON", permission: "portal:site:update", sort: 1, parentId: portalSiteMenuId })
+    const portalSectionMenuId = await upsertMenu({
+      nameZh: "图文区块", nameEn: "Sections", type: "MENU", path: "/portal/section", component: "portal/section",
+      icon: "layers",
+      permission: "portal:section:query", sort: 2, parentId: portalId,
+    })
+    await upsertMenu({ nameZh: "区块新增", nameEn: "Add Section", type: "BUTTON", permission: "portal:section:create", sort: 1, parentId: portalSectionMenuId })
+    await upsertMenu({ nameZh: "区块编辑", nameEn: "Edit Section", type: "BUTTON", permission: "portal:section:update", sort: 2, parentId: portalSectionMenuId })
+    await upsertMenu({ nameZh: "区块删除", nameEn: "Delete Section", type: "BUTTON", permission: "portal:section:delete", sort: 3, parentId: portalSectionMenuId })
+    const portalBannerMenuId = await upsertMenu({
+      nameZh: "Banner 管理", nameEn: "Banners", type: "MENU", path: "/portal/banner", component: "portal/banner",
+      icon: "palette",
+      permission: "portal:banner:query", sort: 3, parentId: portalId,
+    })
+    await upsertMenu({ nameZh: "Banner 新增", nameEn: "Add Banner", type: "BUTTON", permission: "portal:banner:create", sort: 1, parentId: portalBannerMenuId })
+    await upsertMenu({ nameZh: "Banner 编辑", nameEn: "Edit Banner", type: "BUTTON", permission: "portal:banner:update", sort: 2, parentId: portalBannerMenuId })
+    await upsertMenu({ nameZh: "Banner 删除", nameEn: "Delete Banner", type: "BUTTON", permission: "portal:banner:delete", sort: 3, parentId: portalBannerMenuId })
+    const portalMessageMenuId = await upsertMenu({
+      nameZh: "留言反馈", nameEn: "Messages", type: "MENU", path: "/portal/message", component: "portal/message",
+      icon: "mail",
+      permission: "portal:message:query", sort: 4, parentId: portalId,
+    })
+    await upsertMenu({ nameZh: "处理留言", nameEn: "Handle Message", type: "BUTTON", permission: "portal:message:update", sort: 1, parentId: portalMessageMenuId })
+    await upsertMenu({ nameZh: "留言删除", nameEn: "Delete Message", type: "BUTTON", permission: "portal:message:delete", sort: 2, parentId: portalMessageMenuId })
+
     // 2. 角色：ADMIN 授权全量菜单+按钮；GUEST 仅 Dashboard（deleteMany + createMany 全量覆盖，幂等）
     const allMenuIds = (await prisma.menu.findMany({ select: { id: true } })).map((m) => m.id)
     const adminRole = await prisma.role.upsert({
@@ -251,6 +283,41 @@ export async function runSeed(options: { resetAdminCredentials?: boolean } = {})
       })
     }
 
+    // 4.2 门户站点配置：固定单行（id 取 schema 的 @default("portal")），仅表空时创建（运营数据，不覆盖人工编辑）
+    if ((await prisma.portalConfig.count()) === 0) {
+      await prisma.portalConfig.create({
+        data: {
+          siteName: "Shadova",
+          siteTagline: "契约驱动的全栈管理平台",
+          contactEmail: "contact@example.com",
+          footerText: "© 2026 Shadova. All rights reserved.",
+          seoTitle: "Shadova 门户",
+          seoDescription: "Shadova 门户首页（示例站点配置，可在「门户管理 → 站点配置」维护）",
+        },
+      })
+    }
+
+    // 4.3 门户图文区块与 Banner：仅表空时插入（公开首页展示数据，重复 seed 不得覆盖人工编辑）
+    if ((await prisma.portalSection.count()) === 0) {
+      await prisma.portalSection.createMany({
+        data: [
+          { icon: "shield-check", title: "安全可靠", description: "双 Token 认证、权限实时生效、写操作全程审计", sort: 1 },
+          { icon: "layers", title: "模块化架构", description: "契约驱动的 Hono API 与约定式页面，按需组装业务模块", sort: 2 },
+          { icon: "trending-up", title: "可持续演进", description: "权限单一事实源与三方言可移植数据层，长期维护成本可控", sort: 3 },
+        ],
+      })
+    }
+    if ((await prisma.portalBanner.count()) === 0) {
+      await prisma.portalBanner.create({
+        data: {
+          title: "欢迎来到 Shadova 门户",
+          // 演示用外链图（Picsum 的固定 id，避免随机图每次不同）；运营可在「门户管理 → Banner 管理」替换
+          imageUrl: "https://picsum.photos/id/1015/1600/600",
+          sort: 1,
+        },
+      })
+    }
+
     // 5. 摘要
     const menuCount = await prisma.menu.count()
     const roleCount = await prisma.role.count()
@@ -259,7 +326,10 @@ export async function runSeed(options: { resetAdminCredentials?: boolean } = {})
     const configCount = await prisma.config.count()
     const notificationCount = await prisma.notification.count()
     const announcementCount = await prisma.announcement.count()
-    console.log(`seed done: 菜单 ${String(menuCount)} 条 / 角色 ${String(roleCount)} 个 / 用户 ${String(userCount)} 个 / 字典类型 ${String(dictTypeCount)} 个 / 参数 ${String(configCount)} 个 / 通知 ${String(notificationCount)} 条 / 公告 ${String(announcementCount)} 条`)
+    const portalSectionCount = await prisma.portalSection.count()
+    const portalBannerCount = await prisma.portalBanner.count()
+    const portalMessageCount = await prisma.portalMessage.count()
+    console.log(`seed done: 菜单 ${String(menuCount)} 条 / 角色 ${String(roleCount)} 个 / 用户 ${String(userCount)} 个 / 字典类型 ${String(dictTypeCount)} 个 / 参数 ${String(configCount)} 个 / 通知 ${String(notificationCount)} 条 / 公告 ${String(announcementCount)} 条 / 门户区块 ${String(portalSectionCount)} 条 / Banner ${String(portalBannerCount)} 条 / 留言 ${String(portalMessageCount)} 条`)
     console.log("默认账号: admin / Admin@123（角色 ADMIN，已授权全部菜单）")
   } finally {
     await prisma.$disconnect()

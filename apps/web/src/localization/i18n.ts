@@ -12,6 +12,7 @@ import enLogin from "./locales/en/login.json"
 import enLogs from "./locales/en/logs.json"
 import enMenus from "./locales/en/menus.json"
 import enNotifications from "./locales/en/notifications.json"
+import enPortal from "./locales/en/portal.json"
 import enRoles from "./locales/en/roles.json"
 import enSessions from "./locales/en/sessions.json"
 import enUsers from "./locales/en/users.json"
@@ -26,6 +27,7 @@ import zhLogin from "./locales/zh/login.json"
 import zhLogs from "./locales/zh/logs.json"
 import zhMenus from "./locales/zh/menus.json"
 import zhNotifications from "./locales/zh/notifications.json"
+import zhPortal from "./locales/zh/portal.json"
 import zhRoles from "./locales/zh/roles.json"
 import zhSessions from "./locales/zh/sessions.json"
 import zhUsers from "./locales/zh/users.json"
@@ -63,6 +65,7 @@ declare module "i18next" {
       dict: typeof zhDict
       config: typeof zhConfig
       notifications: typeof zhNotifications
+      portal: typeof zhPortal
       errors: typeof zhErrors
     }
   }
@@ -70,13 +73,13 @@ declare module "i18next" {
 
 void i18n.use(initReactI18next).init({
   resources: {
-    zh: { common: zhCommon, announcement: zhAnnouncement, login: zhLogin, dashboard: zhDashboard, users: zhUsers, roles: zhRoles, menus: zhMenus, department: zhDepartment, logs: zhLogs, sessions: zhSessions, dict: zhDict, config: zhConfig, notifications: zhNotifications, errors: zhErrors },
-    en: { common: enCommon, announcement: enAnnouncement, login: enLogin, dashboard: enDashboard, users: enUsers, roles: enRoles, menus: enMenus, department: enDepartment, logs: enLogs, sessions: enSessions, dict: enDict, config: enConfig, notifications: enNotifications, errors: enErrors },
+    zh: { common: zhCommon, announcement: zhAnnouncement, login: zhLogin, dashboard: zhDashboard, users: zhUsers, roles: zhRoles, menus: zhMenus, department: zhDepartment, logs: zhLogs, sessions: zhSessions, dict: zhDict, config: zhConfig, notifications: zhNotifications, portal: zhPortal, errors: zhErrors },
+    en: { common: enCommon, announcement: enAnnouncement, login: enLogin, dashboard: enDashboard, users: enUsers, roles: enRoles, menus: enMenus, department: enDepartment, logs: enLogs, sessions: enSessions, dict: enDict, config: enConfig, notifications: enNotifications, portal: enPortal, errors: enErrors },
   },
   lng: detectInitialLanguage(),
   fallbackLng: "zh",
   defaultNS: "common",
-  ns: ["common", "announcement", "login", "dashboard", "users", "roles", "menus", "department", "logs", "sessions", "dict", "config", "notifications", "errors"],
+  ns: ["common", "announcement", "login", "dashboard", "users", "roles", "menus", "department", "logs", "sessions", "dict", "config", "notifications", "portal", "errors"],
   interpolation: { escapeValue: false },
 })
 

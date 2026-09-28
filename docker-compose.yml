@@ -1,5 +1,6 @@
 # 一键启动：docker compose up -d --build
-# - web: http://localhost:5173（nginx 静态 + /api 反代）
+# - web: http://localhost:5173（管理端：nginx 静态 + /api 反代）
+# - portal: http://localhost:5174（公开门户：nginx 静态 + /api 反代）
 # - api: http://localhost:3001
 # - SQLite 数据持久化到 db-data 卷；首次启动自动建表 + 种子（admin / Admin@123）
 # - JWT_SECRET 未设置时容器入口自动生成随机密钥并持久化到数据卷；也可显式设置（至少 32 字符）
@@ -32,6 +33,16 @@ services:
       - api
     ports:
       - "5173:80"
+
+  portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime-portal
+    depends_on:
+      - api
+    ports:
+      - "5174:80"
 
 volumes:
   db-data:

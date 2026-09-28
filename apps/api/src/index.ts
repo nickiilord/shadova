@@ -21,6 +21,7 @@ import { meRoutes } from "./routes/me.js"
 import { menuRoutes } from "./routes/menus.js"
 import { notificationRoutes } from "./routes/notifications.js"
 import { otpRoutes } from "./routes/otp.js"
+import { portalRoutes } from "./routes/portal.js"
 import { roleRoutes } from "./routes/roles.js"
 import { sessionRoutes } from "./routes/sessions.js"
 import { userRoutes } from "./routes/users.js"
@@ -60,6 +61,9 @@ export function createApp(cfg: AppConfig = loadConfig()): OpenAPIHono {
       path === "/api/auth/login" ||
       path.startsWith("/api/auth/otp/") ||
       path === "/api/auth/refresh" ||
+      // 访客留言提交不是管理操作（内容已落 PortalMessage），计入操作审计只会污染管理端日志；
+      // 子路径 /api/portal/messages/{id} 是管理端处理动作，仍正常审计
+      path === "/api/portal/messages" ||
       path === "/api/docs" ||
       path === "/api/openapi.json" ||
       path === "/api/health"
@@ -129,6 +133,7 @@ export function createApp(cfg: AppConfig = loadConfig()): OpenAPIHono {
   app.route("/", departmentRoutes(cfg))
   app.route("/", notificationRoutes(cfg))
   app.route("/", fileRoutes(cfg))
+  app.route("/", portalRoutes(cfg))
 
   app.notFound((c) =>
     c.json({ code: "NOT_FOUND", message: "接口不存在", data: null }, 404),

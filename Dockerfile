@@ -1,7 +1,8 @@
-# 多阶段构建：base（依赖+构建）→ runtime-api（Hono）+ runtime-web（nginx）
+# 多阶段构建：base（依赖+构建）→ runtime-api（Hono）+ runtime-web（管理端 nginx）+ runtime-portal（门户 nginx）
 # 构建方式：docker compose build（根目录执行），或
 #   docker build --target runtime-api -t shadova-api .
 #   docker build --target runtime-web -t shadova-web .
+#   docker build --target runtime-portal -t shadova-portal .
 FROM node:22-slim AS base
 ENV PNPM_HOME="/pnpm" PATH="/pnpm:$PATH"
 RUN corepack enable
@@ -15,6 +16,7 @@ COPY packages/shared packages/shared
 COPY packages/db packages/db
 COPY apps/api apps/api
 COPY apps/web apps/web
+COPY apps/portal apps/portal
 # install 的 postinstall 会执行 prisma generate（schema 已复制）
 RUN pnpm install --frozen-lockfile
 RUN pnpm turbo build
@@ -33,5 +35,11 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 FROM nginx:alpine AS runtime-web
 COPY --from=build /app/apps/web/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+
+# 门户（apps/portal）：公开静态站，复用同一份 nginx 配置（同样把 /api 反代到 api:3001）
+FROM nginx:alpine AS runtime-portal
+COPY --from=build /app/apps/portal/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80

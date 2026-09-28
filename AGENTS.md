@@ -1,6 +1,6 @@
 # AGENTS.md
 
-shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React + shadcn-ui 前端 / Prisma 数据库，SQLite·MySQL·PostgreSQL 三方言可移植）。本文件是智能体开发本仓库的指南；数据库文档在 `docs/database/`。
+shadova：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React + shadcn-ui 管理端与公开门户 / Prisma 数据库，SQLite·MySQL·PostgreSQL 三方言可移植）。本文件是智能体开发本仓库的指南；数据库文档在 `docs/database/`。
 
 你需要遵循下面的规则
 
@@ -68,8 +68,9 @@ shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React
 | 目录 | 职责 |
 |---|---|
 | `apps/api` | Hono 后端。路由 `src/routes/*.ts`（auth / otp / me / users / roles / menus）；认证与权限中间件 `src/middleware/{auth,clerk-auth}.ts`；动态码发送入口 `src/lib/otp-sender.ts`（OtpSender 接口 + DevOtpSender）；OpenAPI 契约生成物 `apps/api/openapi.json` |
-| `apps/web` | Vite + React 19 + react-router 7 + TanStack Query。页面为约定式 `src/features/<component>/page.tsx`；动态路由与守卫 `src/router/{generateRoutes,guards}.tsx`；登录抽象 `src/auth/`（JWT / Clerk 两个 Provider 实现，经 `src/auth/AuthProvider.tsx` 统一）；`src/components/ui/` 是 shadcn 组件（CLI 安装，勿手写）；`src/api/schema.d.ts` 是 openapi-typescript 生成物 |
-| `packages/shared` | 权限纯函数 `computeVisibleMenus`（**权限计算的唯一位置**，见设计文档 §6） |
+| `apps/web` | 管理端：Vite + React 19 + react-router 7 + TanStack Query。页面为约定式 `src/features/<component>/page.tsx`；动态路由与守卫 `src/router/{generateRoutes,guards}.tsx`；登录抽象 `src/auth/`（JWT / Clerk 两个 Provider 实现，经 `src/auth/AuthProvider.tsx` 统一）；`src/components/ui/` 是 shadcn 组件（CLI 安装，勿手写）；`src/api/schema.d.ts` 是 openapi-typescript 生成物 |
+| `apps/portal` | 公开门户（免登录，5174）：单页首页，不引入 react-router；数据来自公开聚合接口 `/api/portal/home` 与留言提交 `/api/portal/messages`；**必须经 Vite 代理 / nginx 反代访问 `/api`**（后端未启用 CORS，跨端口直连会被浏览器拦截）；`src/components/ui/` 同为 shadcn CLI 产物 |
+| `packages/shared` | 权限纯函数 `computeVisibleMenus`（**权限计算的唯一位置**，见 `docs/business/README.md` §3）；权限码注册表 `permission-codes.ts`；门户区块图标白名单 `portal-icons.ts` |
 | `packages/db` | Prisma schema（运行时权威，全字段中文 docstring）+ 幂等种子 `src/seed.ts`（admin/Admin@123、菜单树、ADMIN/GUEST 角色） |
 | `packages/config` | 共享 `tsconfig.base.json` 与 eslint 配置（被各包继承） |
 | `.agents/skills/` / `.claude/skills/` | agent 技能双目录（跨工具读取前者，Claude Code 只扫描后者）；**两份必须同步提交**；骨架规范见 `.agents/README.md` |
@@ -78,23 +79,24 @@ shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React
 
 | 命令 | 说明 |
 |---|---|
-| `pnpm dev` | 同时起 web（5173）与 api（3001）；`/api` 由 Vite 代理到 3001 |
+| `pnpm dev` | 同时起 web（5173）、portal（5174）与 api（3001）；两个前端的 `/api` 均由 Vite 代理到 3001 |
 | `pnpm turbo test` | shared 单元 + api 集成（自动重建 SQLite 测试库）+ web RTL |
 | `pnpm turbo build` / `pnpm turbo lint` | 全量构建 / 全量 lint |
 | `pnpm --filter @repo/db seed` | 幂等种子；**默认不重置** admin 凭据，加 `-- --reset-admin`（或 `seed:reset`）恢复演示口令与联系方式 |
-| `pnpm --filter @repo/api generate:openapi && pnpm --filter @repo/api generate:types` | 重生成 `openapi.json` 与 `web/src/api/schema.d.ts`；改 api 源码后建议跑（pre-commit 会自动执行） |
+| `pnpm --filter @repo/api generate:openapi && pnpm --filter @repo/api generate:types && pnpm --filter @repo/portal generate:types` | 重生成 `openapi.json`、`web/src/api/schema.d.ts` 与 `portal/src/api/schema.d.ts`；改 api 源码后建议跑（pre-commit 会自动执行） |
 | `pnpm --filter @repo/db db:migrate -- --name <name>` | Prisma migrate dev（预留；当前项目无迁移文件，结构同步统一走 `db push`，约定见 docs/database/README.md） |
 
 ## 规范要点
 
-- **严格 TS**：`packages/config/tsconfig.base.json`（strict、noUncheckedIndexedAccess、exactOptionalPropertyTypes、verbatimModuleSyntax、noUnusedLocals/Parameters、noFallthroughCasesInSwitch 等）。唯一放宽：web 包 `exactOptionalPropertyTypes: false`（shadcn 上游组件产物不兼容，原因见 `apps/web/tsconfig.json` 注释——勿扩大放宽面）。
-- **shadcn 严格 CLI**：组件一律 `npx shadcn@latest add <component>` 安装，**禁止手写/复制粘贴组件源码**；升级/覆盖走 `--dry-run` → `--diff` 合并，并跳过 ignore 面 = `src/components/ui/` 全部 + `src/hooks/use-mobile.ts` + `src/api/schema.d.ts`（生成物与 CLI 无关）。新 UI 需求先 `npx shadcn@latest search` 官方/社区 registry。
+- **严格 TS**：`packages/config/tsconfig.base.json`（strict、noUncheckedIndexedAccess、exactOptionalPropertyTypes、verbatimModuleSyntax、noUnusedLocals/Parameters、noFallthroughCasesInSwitch 等）。唯一放宽：两个前端应用（web / portal）的 `exactOptionalPropertyTypes: false`（shadcn 上游组件产物不兼容，原因见各自 `tsconfig.json` 注释——勿扩大到后端与 packages）。
+- **shadcn 严格 CLI**：组件一律 `npx shadcn@latest add <component>` 安装，**禁止手写/复制粘贴组件源码**；升级/覆盖走 `--dry-run` → `--diff` 合并。eslint ignore 面（`packages/config/eslint.config.ts`，按 `apps/*` 通配）= `src/components/ui/` 全部 + `src/hooks/use-mobile.ts` + `src/api/schema.d.ts`。新 UI 需求先 `npx shadcn@latest search` 官方/社区 registry。
 - **权限码规范**：`模块:资源:操作`（如 `system:user:create`）。新增权限三处联动：种子菜单 BUTTON 行（或菜单管理页在线创建）+ 后端路由 `requirePermission(code)` 挂码 + 前端 `<Permission code="...">` 包裹。计算规则唯一在 `packages/shared`（纯严格交集，无超管例外）。
 - **权限码单一来源**：生产代码中的权限常量统一引用 `packages/shared/src/permission-codes.ts` 导出的 `PERMISSIONS`；禁止在 API 路由或 Web 页面重新定义同名字符串。注册表的一致性由 `packages/shared/test/permission-codes.test.ts` 守护。测试夹具和历史业务样例可保留字面量，但不得作为生产权限常量来源。
 - **领域服务边界**：路由层只负责 HTTP/OpenAPI 适配、参数校验和响应包装；跨接口复用的查询、事务、唯一性校验、树操作和响应映射必须放在 `apps/api/src/services/`。禁止在多个路由复制 Prisma 事务或 DTO 映射。
 - **树结构实现**：部门、菜单等 `parentId` 树统一使用 `packages/shared/src/tree.ts` 的纯函数或基于它的领域 service；先全量取回必要字段再内存建树，禁止为单次管理操作引入递归 SQL/方言专属查询。
 - **运行时产物边界**：workspace 包必须提供 `dist` 构建入口；生产镜像启动编译产物和生产依赖，不通过 `tsx` 直接加载 workspace 源码。开发/初始化可以继续使用 `db push`，但不得因此把开发工具链带入运行时。
-- **请求客户端单一重试链**：Web 的 JSON、下载和 multipart 请求必须复用 `apps/web/src/api/client.ts` 的统一鉴权重试逻辑；401 只允许单次刷新和重试，禁止在业务 hook/page 内自行刷新 token。
+- **请求客户端单一重试链**：管理端的 JSON、下载和 multipart 请求必须复用 `apps/web/src/api/client.ts` 的统一鉴权重试逻辑；401 只允许单次刷新和重试，禁止在业务 hook/page 内自行刷新 token。门户面向访客，使用 `apps/portal/src/api/client.ts`（无 token/无刷新链），两者不共用。
+- **公开接口边界**：不挂 `authenticate` 的路由必须在 `docs/business/README.md` §6 标注为公开，并评估滥用面（写接口需限流，如门户留言的 `apps/api/src/lib/rate-limit.ts`）；公开写路径不进入操作日志（不是管理操作）。
 - **递归 OpenAPI schema**：受 zod-openapi 递归 schema 限制的 workaround 必须集中在 `apps/api/src/lib/schemas.ts` 和应用注册处维护；新增递归字段时同步更新运行时 schema、手工 OAS 组件及契约测试，禁止在路由内再次手写第二份。
 - **测试隔离**：API 集成测试不得写开发库；测试数据库通过 `TEST_DATABASE_URL` 指定，并优先使用进程级/worker 级独立文件。测试初始化必须在 Prisma client 加载前完成，避免模块绑定错误数据库。
 - **交付验证**：独立变更至少执行受影响包的 TypeScript 检查和 `git diff --check`；API 契约变更再生成 `openapi.json`/`schema.d.ts`。全量测试只在发布或专门验收阶段运行。
@@ -106,7 +108,9 @@ shadcn-mono：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React
 
 ## 文档索引
 
-- `docs/database/README.md` — 数据库文档（权限语义速查 + 三方言差异表 + 切库步骤）
+- `docs/business/README.md` — 业务权威文档（领域模型 / 权限 / 业务规则 / API 清单 / 种子）
+- `docs/database/README.md` — 数据库文档（权限语义速查 + 三方言差异表 + 切库步骤 + MySQL 类型清单）
+- `docs/review/business-rules.md` — 业务 Review 矩阵（每轮专项检查基线）
 - `AGENTS.md` — 本文件：仓库规则单一真相源（CLAUDE.md 仅保留一行索引，不维护副本）
 - `.agents/README.md` — skills 骨架规范 + 双目录同步约定（新增/修改 skill 前必读）
 - **skills 清单**：`.agents/skills/`（与 `.claude/skills/` 同步，共 10 个）——入口为 `add-module`（新增业务模块编排）；其余为执行层（add-api-route / add-page / db-schema-change / add-e2e / seed-edit / shadcn-add / switch-database）与质量层（test-writing / pre-commit-check）；触发条件见各 SKILL.md frontmatter

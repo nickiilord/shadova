@@ -40,13 +40,14 @@ pnpm --filter @repo/db seed
 pnpm dev
 ```
 
-打开 <http://localhost:5173>。API 地址默认为 <http://localhost:3001>，Swagger UI 位于 <http://localhost:3001/api/docs>。
+打开 <http://localhost:5173>（管理端）与 <http://localhost:5174>（公开门户）。API 地址默认为 <http://localhost:3001>，Swagger UI 位于 <http://localhost:3001/api/docs>。
 
 默认演示账号：`admin / Admin@123`。种子脚本可幂等重跑，并会重置该账号的密码和演示联系方式。
 
 ## 功能
 
 - **管理端**：React 19、Vite、React Router、TanStack Query、Tailwind CSS、shadcn/ui。
+- **门户**：面向访客的公开单页（`apps/portal`，端口 5174）：品牌区、轮播图、图文区块、联系方式与社交链接、留言表单；中英双语跟随浏览器，SEO 元信息取自站点配置。
 - **API**：Hono、Zod、`@hono/zod-openapi` 和 Swagger UI。
 - **认证**：账号密码、邮箱/手机动态码、Clerk 托管登录。
 - **授权**：严格多角色交集；菜单、动态路由和页面按钮共享权限语义。
@@ -59,7 +60,8 @@ pnpm dev
 ```text
 apps/
 ├── api/          # Hono API，默认端口 3001
-└── web/          # React 管理端，默认端口 5173
+├── web/          # React 管理端，默认端口 5173
+└── portal/       # 公开门户（免登录单页），默认端口 5174
 packages/
 ├── db/           # Prisma schema、client 与幂等种子
 ├── shared/       # 前后端共享的权限纯函数
@@ -67,7 +69,7 @@ packages/
 docs/
 ├── business/     # 业务文档（权威：领域模型/权限/规则/API/种子）
 ├── database/     # 三方言数据库约定与参考 DDL
-└── archive/superpowers/  # 历史设计规格与实施计划（已归档）
+└── review/       # 业务 Review 矩阵（专项检查基线）
 ```
 
 ## 权限模型
@@ -153,7 +155,7 @@ API 集成测试会重建独立的 SQLite 测试库，不会修改开发数据�
 
 - [数据库与权限语义](./docs/database/README.md)
 - [业务文档](./docs/business/README.md)
-- [历史设计规格与实施计划（归档）](./docs/archive/superpowers/)
+- [业务 Review 矩阵](./docs/review/business-rules.md)
 - [智能体开发指南](./CLAUDE.md)
 
 ## 参与贡献

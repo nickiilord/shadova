@@ -371,3 +371,120 @@ export const latestAnnouncementSchema = announcementItemSchema
   .omit({ updatedAt: true })
   .nullable()
   .openapi("LatestAnnouncement")
+
+/** 门户站点配置（固定单行）：公开首页品牌区/联系方式/社交链接/页脚/SEO 与管理端站点配置页共用 */
+export const portalSiteSchema = z
+  .object({
+    siteName: z.string(),
+    siteTagline: z.string().nullable(),
+    contactEmail: z.string().nullable(),
+    contactPhone: z.string().nullable(),
+    whatsappNumber: z.string().nullable(),
+    facebookUrl: z.string().nullable(),
+    instagramUrl: z.string().nullable(),
+    youtubeUrl: z.string().nullable(),
+    telegramUrl: z.string().nullable(),
+    privacyPolicyUrl: z.string().nullable(),
+    footerText: z.string().nullable(),
+    seoTitle: z.string().nullable(),
+    seoDescription: z.string().nullable(),
+    seoKeywords: z.string().nullable(),
+  })
+  .openapi("PortalSite")
+
+/** 公开首页图文区块（仅启用项，按 sort 升序） */
+export const portalSectionPublicSchema = z
+  .object({
+    id: z.string(),
+    icon: z.string().nullable(),
+    title: z.string(),
+    description: z.string().nullable(),
+    sort: z.number(),
+  })
+  .openapi("PortalSectionPublic")
+
+/** 公开首页 Banner（外链图片） */
+export const portalBannerPublicSchema = z
+  .object({
+    id: z.string(),
+    title: z.string(),
+    imageUrl: z.string(),
+    linkUrl: z.string().nullable(),
+    sort: z.number(),
+  })
+  .openapi("PortalBannerPublic")
+
+/** 公开首页聚合响应（首屏一次请求取齐，避免多接口串行） */
+export const portalHomeSchema = z
+  .object({
+    site: portalSiteSchema,
+    sections: z.array(portalSectionPublicSchema),
+    banners: z.array(portalBannerPublicSchema),
+  })
+  .openapi("PortalHome")
+
+/** 公开留言提交回执（收单确认，不回传处理状态） */
+export const portalMessageReceiptSchema = z
+  .object({ id: z.string(), createdAt: z.string() })
+  .openapi("PortalMessageReceipt")
+
+/** 图文区块管理项（含停用项与时间戳） */
+export const portalSectionItemSchema = z
+  .object({
+    id: z.string(),
+    icon: z.string().nullable(),
+    title: z.string(),
+    description: z.string().nullable(),
+    sort: z.number(),
+    status: z.boolean(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .openapi("PortalSectionItem")
+
+/** Banner 管理项（含停用项与时间戳） */
+export const portalBannerItemSchema = z
+  .object({
+    id: z.string(),
+    title: z.string(),
+    imageUrl: z.string(),
+    linkUrl: z.string().nullable(),
+    sort: z.number(),
+    status: z.boolean(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .openapi("PortalBannerItem")
+
+/** 留言管理项（status=PENDING/HANDLED；remark 为内部备注，不对访客展示） */
+export const portalMessageItemSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    contact: z.string(),
+    content: z.string(),
+    status: z.string(),
+    remark: z.string().nullable(),
+    handledAt: z.string().nullable(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  })
+  .openapi("PortalMessageItem")
+
+/** 图文区块分页结果 */
+export const portalSectionPageResultSchema = z
+  .object({ list: z.array(portalSectionItemSchema), total: z.number() })
+  .openapi("PortalSectionPageResult")
+
+/** Banner 分页结果 */
+export const portalBannerPageResultSchema = z
+  .object({ list: z.array(portalBannerItemSchema), total: z.number() })
+  .openapi("PortalBannerPageResult")
+
+/** 留言分页结果 */
+export const portalMessagePageResultSchema = z
+  .object({ list: z.array(portalMessageItemSchema), total: z.number() })
+  .openapi("PortalMessagePageResult")
+
+export type PortalSite = z.infer<typeof portalSiteSchema>
+export type PortalHome = z.infer<typeof portalHomeSchema>

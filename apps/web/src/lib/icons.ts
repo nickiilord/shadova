@@ -1,3 +1,4 @@
+import { PORTAL_ICON_NAMES } from "@repo/shared"
 import type { LucideIcon } from "lucide-react"
 import {
   BarChart3,
@@ -120,4 +121,22 @@ const ICON_MAP = new Map(ICON_CHOICES.map(({ name, icon }) => [name, icon]))
 export function iconByName(name: string | null | undefined): LucideIcon | null {
   if (!name) return null
   return ICON_MAP.get(name) ?? null
+}
+
+/**
+ * 门户图文区块可选图标：取值来自 @repo/shared 的 PORTAL_ICON_NAMES（管理端选择器 / API 校验 /
+ * portal 渲染三端唯一清单），这里只保留本应用已注册的图标。
+ * 清单必须是 ICON_CHOICES 的子集，由 test/portal-icons.test.ts 守护（否则运营会选到 portal 渲染不出的图标）。
+ */
+export const PORTAL_ICON_CHOICES: { name: string; icon: LucideIcon }[] = PORTAL_ICON_NAMES.flatMap((name) => {
+  const icon = ICON_MAP.get(name)
+  return icon ? [{ name, icon }] : []
+})
+
+const PORTAL_ICON_MAP = new Map(PORTAL_ICON_CHOICES.map(({ name, icon }) => [name, icon]))
+
+/** 按名称取门户区块图标（取值受 PORTAL_ICON_NAMES 白名单约束；不在清单内返回 null） */
+export function portalIconByName(name: string | null | undefined): LucideIcon | null {
+  if (!name) return null
+  return PORTAL_ICON_MAP.get(name) ?? null
 }

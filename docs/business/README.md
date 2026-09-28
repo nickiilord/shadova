@@ -1,7 +1,7 @@
 # 业务文档：RBAC 管理端（Shadova）
 
 > **定位**：本文件是仓库的业务权威文档，描述系统的**当前真实行为**，随代码演进维护。
-> 内容以 `packages/db/prisma/schema.prisma`（数据）、`packages/db/src/seed.ts`（种子）、`apps/api/src/routes/*`（接口与规则）、`packages/shared/src/permissions.ts`（权限算法）为准；历史设计文档与实施计划已归档至 `docs/archive/superpowers/`，不再作为事实来源。
+> 内容以 `packages/db/prisma/schema.prisma`（数据）、`packages/db/src/seed.ts`（种子）、`apps/api/src/routes/*`（接口与规则）、`packages/shared/src/permissions.ts`（权限算法）为准。
 
 ## 1. 系统概述
 
@@ -10,13 +10,14 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 | 层 | 技术 | 说明 |
 |---|---|---|
 | 前端 | Vite + React 19 + React Router 7 + TanStack Query + shadcn-ui | 约定式页面 `apps/web/src/features/<component>/page.tsx`；shadcn 组件严格 CLI 管理 |
+| 门户 | Vite + React 19 + TanStack Query + shadcn-ui | 独立公开应用 `apps/portal`（5174），免登录；首屏数据来自聚合接口 `GET /api/portal/home` |
 | 后端 | Hono + @hono/zod-openapi | zod schema 三合一（校验 / OpenAPI 文档 / 类型）；`/api/docs` 挂 Swagger UI |
 | 数据 | Prisma（SQLite 默认 / MySQL / PostgreSQL） | 三方言可移植，结构同步走 `db push`；运行时包从 `dist` 产物加载 |
 | 认证 | 内置 JWT 双 Token + 邮箱/手机 OTP；可选 Clerk 适配器 | 环境变量 `VITE_AUTH_PROVIDER` / 后端 `authProvider` 切换 |
 
 核心能力：三种登录（账号密码 / 邮箱动态码 / 手机动态码）、多角色权限（严格交集）、用户 / 角色 / 菜单 / 部门 / 字典 / 参数 / 公告 / 通知 / 日志 / 会话 / 文件等系统管理模块。
 
-## 2. 领域模型（15 张表，按业务域分组）
+## 2. 领域模型（19 张表，按业务域分组）
 
 > 全字段中文注释以 `schema.prisma` docstring 为权威；本表只列业务语义要点。ER 级细节见 [数据库结构文档](../database/README.md) 与 `docs/database/schema.sql`（MySQL DDL 速查版）。
 
@@ -56,6 +57,15 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 | Notification | 站内通知（系统/管理员发送）。按接收用户隔离，**发送方不落库**；`isRead`/`readAt` 已读状态；用户删除级联删除 |
 | Announcement | 全局公告（管理员维护，登录用户首页横幅展示）。`status=true` 才进 `latest`；下架后首页不可见 |
 
+### 2.5 门户域
+
+| 表 | 业务语义 |
+|---|---|
+| PortalConfig | 门户站点配置（**固定单行**，主键 `portal`）：站点名称/标语、联系方式、社交链接、隐私政策链接、页脚文案、SEO。无行时按默认值返回（不隐式插行），保存走单行 upsert |
+| PortalSection | 门户首页图文区块（价值主张卡片）：`icon` 受 `PORTAL_ICON_NAMES` 白名单约束、标题、描述、排序、启停。停用项不进公开首页 |
+| PortalBanner | 门户首页轮播图：**外链图片 URL**（不经服务端存储）、标题、跳转链接、排序、启停 |
+| PortalMessage | 访客留言反馈：姓名、联系方式、内容、处理状态（`PENDING`/`HANDLED`，字符串 + zod）、内部备注、处理时间。由公开接口写入，管理端只做收单与状态流转（无新增/回复） |
+
 ## 3. 权限模型（核心规则）
 
 ### 3.1 计算规则
@@ -78,7 +88,7 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 - 状态变化（用户/角色/菜单 status、角色授权变更、用户角色变更）**立即影响下一次请求**：旧 access token 不保留已撤销权限；禁用用户的旧 refresh 在 refresh/换发时被拒。
 - 用户 `status=false` 后：现有 access token 立即失效（authenticate 每请求查库校验）。
 
-### 3.3 权限码清单（种子全量，共 30 个）
+### 3.3 权限码清单（种子全量，共 48 个）
 
 `模块:资源:操作` 规范。菜单树（种子，zh 名 / 路径 / 组件 / 权限码）：
 
@@ -105,8 +115,17 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 | 3 | — | BUTTON | — | `system:dept:create` / `update` / `delete` |
 | 2 | 公告管理 Announcements | MENU | `/system/announcement` → `system/announcement` | — |
 | 3 | — | BUTTON | — | `system:announcement:create` / `update` / `delete` |
+| 1 | 门户管理 Portal | DIR | — | — |
+| 2 | 站点配置 Site Settings | MENU | `/portal/site` → `portal/site` | — |
+| 3 | — | BUTTON | — | `portal:site:update` |
+| 2 | 图文区块 Sections | MENU | `/portal/section` → `portal/section` | — |
+| 3 | — | BUTTON | — | `portal:section:create` / `update` / `delete` |
+| 2 | Banner 管理 Banners | MENU | `/portal/banner` → `portal/banner` | — |
+| 3 | — | BUTTON | — | `portal:banner:create` / `update` / `delete` |
+| 2 | 留言反馈 Messages | MENU | `/portal/message` → `portal/message` | — |
+| 3 | — | BUTTON | — | `portal:message:update` / `delete` |
 
-> 菜单页（含 BUTTON）的 `permission` 非空即查询码：`system:{user,role,menu,log,session,dict,config,dept,announcement}:query`（通知中心无查询码，同 Dashboard 先例）。改动权限相关代码时三处联动：种子/菜单表 + 后端 `requirePermission` + 前端 `<Permission>`。
+> 菜单页（含 BUTTON）的 `permission` 非空即查询码：`system:{user,role,menu,log,session,dict,config,dept,announcement}:query` 与 `portal:{site,section,banner,message}:query`（通知中心无查询码，同 Dashboard 先例；留言反馈无 create 码——留言由访客经公开接口创建）。改动权限相关代码时三处联动：种子/菜单表 + 后端 `requirePermission` + 前端 `<Permission>`。
 
 ## 4. 认证与安全规则
 
@@ -156,6 +175,7 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 | 通知 | 查询/已读/未读数均为**本人数据隔离**（仅登录即可，不挂权限码）；发送是管理操作（`system:notification:create`）；标记已读 CAS（防重复写）；`read-all` 仅本人 |
 | 日志 | 登录日志 / 操作日志两个列表（`system:log:query`）；详情字段见 §4.5；敏感体脱敏后落库与展示 |
 | 会话 | **在线定义** = 未吊销且未过期；单条吊销带 CAS 条件（已吊销的会话重复操作不报错）；`revoke-all` 按 userId 吊销该用户全部会话（强制下线） |
+| 门户 | 站点配置固定单行（无行时按默认值返回，不隐式插行）；公开首页只展示启用区块/Banner（按 sort 升序）；留言由访客公开提交（**同来源 60 秒 1 条 + 每小时 10 条**限流），管理端只做状态流转与删除，不计入操作日志 |
 
 ## 6. API 清单（全部 `/api` 前缀，`{ code, data, message }` 包装）
 
@@ -229,6 +249,27 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 | POST | `/files` | 登录即可 | 图片上传（白名单 + 2MB） |
 | GET | `/files/{filename}` | 登录即可 | 图片访问（防穿越） |
 
+### 门户（Portal）
+
+公开接口（**不挂 `authenticate`**，门户面向访客）：
+
+| 方法 | 路径 | 权限码 | 说明 |
+|---|---|---|---|
+| GET | `/portal/home` | 无（公开） | 首页聚合：站点配置 + 启用区块 + 启用 Banner（一次取齐首屏） |
+| POST | `/portal/messages` | 无（公开） | 访客提交留言（`name`/`contact`/`content`）；同来源 60 秒 1 条 + 每小时 10 条限流，超限 429 `RATE_LIMITED`；不计入操作日志 |
+
+管理接口（挂 `authenticate` + 权限码）：
+
+| 方法 | 路径 | 权限码 | 说明 |
+|---|---|---|---|
+| GET / PUT | `/portal/site` | `portal:site:query` / `update` | 站点配置读取（无行返回默认值）/ 单行 upsert 保存（只覆盖提交字段） |
+| GET / POST | `/portal/sections` | `portal:section:query` / `create` | 区块分页列表 / 创建（`icon` 校验白名单） |
+| PATCH / DELETE | `/portal/sections/{id}` | `portal:section:update` / `delete` | 更新 / 删除 |
+| GET / POST | `/portal/banners` | `portal:banner:query` / `create` | Banner 分页列表 / 创建 |
+| PATCH / DELETE | `/portal/banners/{id}` | `portal:banner:update` / `delete` | 更新 / 删除 |
+| GET | `/portal/messages` | `portal:message:query` | 留言分页列表（`status` 与 `keyword` 筛选） |
+| PATCH / DELETE | `/portal/messages/{id}` | `portal:message:update` / `delete` | 状态与备注流转（同步 `handledAt`）/ 删除 |
+
 ## 7. 种子数据（`pnpm --filter @repo/db seed`，幂等可重跑）
 
 | 数据 | 内容 | 幂等策略 |
@@ -241,6 +282,8 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 | 演示参数 | `user.password.minLength = 8` | upsert |
 | 演示公告 | 「平台上线公告」 | 仅表空时插入（运营数据，不覆盖人工编辑） |
 | 演示通知 | admin 两条示例 | 仅表空时插入（用户数据，不覆盖已读状态） |
+| 门户站点配置 | 站点名称/标语/联系邮箱/页脚/SEO 示例 | 仅表空时插入（运营数据，不覆盖人工编辑） |
+| 门户区块与 Banner | 3 个图文区块 + 1 张外链 Banner | 仅表空时插入（公开首页展示数据） |
 
 ## 8. 关键约定（开发与排障必读）
 
@@ -259,4 +302,3 @@ RBAC 管理端 SPA（monorepo：Turborepo + pnpm）：
 | `docs/business/README.md`（本文件） | 业务权威：领域模型、权限、规则、API、种子 |
 | `docs/database/README.md` | 数据库三方言差异、切库步骤、MySQL 类型清单 |
 | `docs/review/business-rules.md` | 业务 Review 矩阵（每轮专项检查基线） |
-| `docs/archive/superpowers/` | 历史设计文档与实施计划（2026-08-06，已被本文件取代，仅存档） |

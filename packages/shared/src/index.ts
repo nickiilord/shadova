@@ -1,4 +1,5 @@
 export * from "./types.js"
 export * from "./permissions.js"
 export * from "./permission-codes.js"
+export * from "./portal-icons.js"
 export * from "./tree.js"

@@ -40,13 +40,14 @@ pnpm --filter @repo/db seed
 pnpm dev
 ```
 
-<http://localhost:5173> を開いてください。API は <http://localhost:3001>、Swagger UI は <http://localhost:3001/api/docs> で利用できます。
+<http://localhost:5173>（管理画面）と <http://localhost:5174>（公開ポータル）を開いてください。API は <http://localhost:3001>、Swagger UI は <http://localhost:3001/api/docs> で利用できます。
 
 デモ認証情報：`admin / Admin@123`。seed は冪等に再実行でき、このアカウントのパスワードとデモ用連絡先をリセットします。
 
 ## 機能
 
 - **管理画面**：React 19、Vite、React Router、TanStack Query、Tailwind CSS、shadcn/ui。
+- **ポータル**：公開シングルページ（`apps/portal`、ポート 5174）。ヒーロー、カルーセル、コンテンツセクション、連絡先・SNS リンク、お問い合わせフォームを備え、ブラウザ言語に応じた中英表示とサイト設定由来の SEO メタ情報を提供します。
 - **API**：Hono、Zod、`@hono/zod-openapi`、Swagger UI。
 - **認証**：ユーザー名/パスワード、メール/SMS ワンタイムコード、Clerk。
 - **認可**：メニュー、動的ルート、ページ操作で共有する複数ロールの厳密な積集合。
@@ -59,7 +60,8 @@ pnpm dev
 ```text
 apps/
 ├── api/          # Hono API、既定ポート 3001
-└── web/          # React 管理画面、既定ポート 5173
+├── web/          # React 管理画面、既定ポート 5173
+└── portal/       # 公開ポータル（ログイン不要）、既定ポート 5174
 packages/
 ├── db/           # Prisma schema、client、冪等な seed
 ├── shared/       # Web/API 共有の認可純粋関数
@@ -67,7 +69,7 @@ packages/
 docs/
 ├── business/     # 業務ドキュメント（権威: モデル/認可/ルール/API/seed）
 ├── database/     # DB 方言の互換ルールと参照 DDL
-└── archive/superpowers/  # 過去の設計仕様と実装計画（アーカイブ）
+└── review/       # 業務レビュー表（ラウンド別チェック基準）
 ```
 
 ## 認可モデル
@@ -153,7 +155,7 @@ API integration テストは専用 SQLite テスト DB を再構築し、開発 
 
 - [データベースと認可の意味論](./docs/database/README.md)
 - [業務ドキュメント](./docs/business/README.md)
-- [過去の設計仕様と実装計画（アーカイブ）](./docs/archive/superpowers/)
+- [業務レビュー表](./docs/review/business-rules.md)
 - [エージェント開発ガイド](./CLAUDE.md)
 
 ## コントリビューション

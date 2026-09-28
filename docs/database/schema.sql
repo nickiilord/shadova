@@ -233,3 +233,69 @@ CREATE TABLE `Announcement` (
 -- 补充约束：User.departmentId 外键（Department 表定义在 User 之后，MySQL 下以 ALTER 形式后置；
 -- 对应 schema.prisma User.department @relation(onDelete: SetNull)）
 ALTER TABLE `User` ADD CONSTRAINT `User_departmentId_fkey` FOREIGN KEY (`departmentId`) REFERENCES `Department` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- 门户站点配置表（单行：主键固定为 "portal"，全局唯一一份；公开首页与后台站点配置页共用）
+CREATE TABLE `PortalConfig` (
+  `id`               VARCHAR(32)  NOT NULL DEFAULT 'portal' COMMENT '主键（固定单行主键 portal）',
+  `siteName`         VARCHAR(191) NOT NULL COMMENT '站点名称（公开首页品牌区标题，SEO 标题缺省回落值）',
+  `siteTagline`      VARCHAR(191) NULL COMMENT '站点标语（品牌区副标题，可空）',
+  `contactEmail`     VARCHAR(191) NULL COMMENT '联系邮箱',
+  `contactPhone`     VARCHAR(64)  NULL COMMENT '联系电话',
+  `whatsappNumber`   VARCHAR(64)  NULL COMMENT 'WhatsApp 号码（纯号码或带国家码，界面直接展示）',
+  `facebookUrl`      VARCHAR(512) NULL COMMENT 'Facebook 主页链接',
+  `instagramUrl`     VARCHAR(512) NULL COMMENT 'Instagram 主页链接',
+  `youtubeUrl`       VARCHAR(512) NULL COMMENT 'YouTube 频道链接',
+  `telegramUrl`      VARCHAR(512) NULL COMMENT 'Telegram 联系链接',
+  `privacyPolicyUrl` VARCHAR(512) NULL COMMENT '隐私政策链接（页脚展示）',
+  `footerText`       TEXT         NULL COMMENT '页脚文案（版权/备案等）',
+  `seoTitle`         VARCHAR(191) NULL COMMENT 'SEO 标题（搜索引擎与浏览器标题）',
+  `seoDescription`   TEXT         NULL COMMENT 'SEO 描述（搜索引擎摘要）',
+  `seoKeywords`      TEXT         NULL COMMENT 'SEO 关键词（逗号分隔）',
+  `createdAt`        DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间（UTC）',
+  `updatedAt`        DATETIME     NOT NULL COMMENT '更新时间（UTC）',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门户站点配置表（单行：主键固定为 portal；公开首页与后台站点配置页共用）';
+
+-- 门户图文区块表（公开首页的价值主张卡片：图标 + 标题 + 描述，按 sort 展示启用的）
+CREATE TABLE `PortalSection` (
+  `id`          VARCHAR(32)  NOT NULL COMMENT '主键（cuid 全局唯一）',
+  `icon`        VARCHAR(64)  NULL COMMENT '图标名（PORTAL_ICON_NAMES 白名单取值，空则不渲染图标）',
+  `title`       VARCHAR(64)  NOT NULL COMMENT '区块标题',
+  `description` TEXT         NULL COMMENT '区块描述',
+  `sort`        INT          NOT NULL DEFAULT 0 COMMENT '排序值（升序展示）',
+  `status`      BOOLEAN      NOT NULL DEFAULT TRUE COMMENT '启用状态（false=不在公开首页展示）',
+  `createdAt`   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间（UTC）',
+  `updatedAt`   DATETIME     NOT NULL COMMENT '更新时间（UTC）',
+  PRIMARY KEY (`id`),
+  KEY `PortalSection_status_sort_idx` (`status`, `sort`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门户图文区块表（公开首页的价值主张卡片）';
+
+-- 门户 Banner 表（公开首页轮播图：外链图片 + 可选跳转链接，不经服务端存储）
+CREATE TABLE `PortalBanner` (
+  `id`        VARCHAR(32)  NOT NULL COMMENT '主键（cuid 全局唯一）',
+  `title`     VARCHAR(64)  NOT NULL COMMENT 'Banner 标题（图片主文案，同时作为无障碍替代文本）',
+  `imageUrl`  VARCHAR(512) NOT NULL COMMENT '图片地址（外链 URL）',
+  `linkUrl`   VARCHAR(512) NULL COMMENT '点击跳转链接（空则不跳转）',
+  `sort`      INT          NOT NULL DEFAULT 0 COMMENT '排序值（升序展示）',
+  `status`    BOOLEAN      NOT NULL DEFAULT TRUE COMMENT '启用状态（false=不在公开首页展示）',
+  `createdAt` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间（UTC）',
+  `updatedAt` DATETIME     NOT NULL COMMENT '更新时间（UTC）',
+  PRIMARY KEY (`id`),
+  KEY `PortalBanner_status_sort_idx` (`status`, `sort`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门户 Banner 表（公开首页轮播图）';
+
+-- 门户留言反馈表（访客在公开首页提交，后台只做收单与处理状态流转，无回复回流）
+CREATE TABLE `PortalMessage` (
+  `id`        VARCHAR(32)  NOT NULL COMMENT '主键（cuid 全局唯一）',
+  `name`      VARCHAR(64)  NOT NULL COMMENT '访客姓名',
+  `contact`   VARCHAR(191) NOT NULL COMMENT '联系方式（邮箱或电话，访客自填）',
+  `content`   TEXT         NOT NULL COMMENT '留言内容',
+  `status`    VARCHAR(32)  NOT NULL DEFAULT 'PENDING' COMMENT '处理状态（PENDING=待处理 / HANDLED=已处理）',
+  `remark`    VARCHAR(500) NULL COMMENT '内部备注（后台处理时填写，不对访客展示）',
+  `handledAt` DATETIME     NULL COMMENT '处理时间（标记已处理时记录，待处理为 null）',
+  `createdAt` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '提交时间（UTC）',
+  `updatedAt` DATETIME     NOT NULL COMMENT '更新时间（UTC）',
+  PRIMARY KEY (`id`),
+  KEY `PortalMessage_status_createdAt_idx` (`status`, `createdAt`),
+  KEY `PortalMessage_createdAt_idx` (`createdAt`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='门户留言反馈表（访客提交，后台收单与状态流转）';

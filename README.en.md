@@ -40,13 +40,14 @@ pnpm --filter @repo/db seed
 pnpm dev
 ```
 
-Open <http://localhost:5173>. The API listens on <http://localhost:3001>; Swagger UI is available at <http://localhost:3001/api/docs>.
+Open <http://localhost:5173> (admin) and <http://localhost:5174> (public portal). The API listens on <http://localhost:3001>; Swagger UI is available at <http://localhost:3001/api/docs>.
 
 Demo credentials: `admin / Admin@123`. The idempotent seed can be rerun and resets this account's password and demo contact details.
 
 ## Features
 
 - **Admin app**: React 19, Vite, React Router, TanStack Query, Tailwind CSS, and shadcn/ui.
+- **Portal**: public single-page app (`apps/portal`, port 5174) with hero, carousel, content sections, contact/social links, and a message form; bilingual by browser language, with SEO metadata from site settings.
 - **API**: Hono, Zod, `@hono/zod-openapi`, and Swagger UI.
 - **Authentication**: username/password, email/SMS one-time codes, and Clerk hosted sign-in.
 - **Authorization**: strict multi-role intersection shared by menus, dynamic routes, and page actions.
@@ -59,7 +60,8 @@ Demo credentials: `admin / Admin@123`. The idempotent seed can be rerun and rese
 ```text
 apps/
 ├── api/          # Hono API, port 3001 by default
-└── web/          # React admin app, port 5173 by default
+├── web/          # React admin app, port 5173 by default
+└── portal/       # Public portal (no sign-in), port 5174 by default
 packages/
 ├── db/           # Prisma schema, client, and idempotent seed
 ├── shared/       # Pure authorization functions shared by web and API
@@ -67,7 +69,7 @@ packages/
 docs/
 ├── business/     # Business documentation (authoritative: model/authorization/rules/API/seed)
 ├── database/     # Database portability rules and reference DDL
-└── archive/superpowers/  # Historical design specification and implementation plan (archived)
+└── review/       # Business review matrix (per-round check baseline)
 ```
 
 ## Authorization Model
@@ -153,7 +155,7 @@ API integration tests rebuild a dedicated SQLite test database and do not modify
 
 - [Database and authorization semantics](./docs/database/README.md)
 - [Business documentation](./docs/business/README.md)
-- [Historical design specification and implementation plan (archived)](./docs/archive/superpowers/)
+- [Business review matrix](./docs/review/business-rules.md)
 - [Agent development guide](./CLAUDE.md)
 
 ## Contributing

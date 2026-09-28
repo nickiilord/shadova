@@ -6,5 +6,6 @@ export default {
   "apps/api/src/**/*.ts": [
     "pnpm --filter @repo/api generate:openapi",
     "pnpm --filter @repo/api generate:types",
+    "pnpm --filter @repo/portal generate:types",
   ],
 }
