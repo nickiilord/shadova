@@ -35,8 +35,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { usePagination } from "@/hooks/usePagination"
+import { formatDateTime } from "@/lib/datetime"
 import { cn } from "@/lib/utils"
-import i18n from "@/localization/i18n"
 import { SendNotificationDialog } from "./SendNotificationDialog"
 import {
   useNotificationsQuery,
@@ -45,13 +45,6 @@ import {
 } from "./useNotifications"
 
 const PAGE_SIZE = 10
-
-/** 时间展示跟随界面语言（zh-CN / en-US，24 小时制）；无效日期显示 "-" */
-function formatDateTime(value: string): string {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return "-"
-  return date.toLocaleString(i18n.language === "zh" ? "zh-CN" : "en-US", { hour12: false })
-}
 
 /**
  * 通知中心页：我的站内通知分页列表 + 单条已读 / 全部已读 + 发送通知（管理员，权限码门控）。

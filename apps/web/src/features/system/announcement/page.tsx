@@ -45,6 +45,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { usePagination } from "@/hooks/usePagination"
+import { formatDateTime } from "@/lib/datetime"
 import { AnnouncementFormDialog } from "./AnnouncementFormDialog"
 import { useAnnouncementsQuery, useDeleteAnnouncementMutation } from "./useAnnouncements"
 import type { AnnouncementItem } from "./useAnnouncements"
@@ -156,7 +157,7 @@ export default function AnnouncementPage(): JSX.Element {
                         {announcement.status ? t("published") : t("unpublished")}
                       </Badge>
                     </TableCell>
-                    <TableCell>{new Date(announcement.updatedAt).toLocaleString()}</TableCell>
+                    <TableCell>{formatDateTime(announcement.updatedAt)}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
                 <Permission code={PERMISSIONS.announcementUpdate}>

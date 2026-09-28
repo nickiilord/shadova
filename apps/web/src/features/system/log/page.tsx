@@ -37,18 +37,10 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { usePagination } from "@/hooks/usePagination"
-import i18n from "@/localization/i18n"
+import { formatDateTime } from "@/lib/datetime"
 import { useLoginLogsQuery, useOperationLogsQuery, type LoginLogItem, type OperationLogItem } from "./useLogs"
 
 const PAGE_SIZE = 10
-
-/** 后端返回 ISO 时间字符串；非法值原样展示（兜底，正常不会走到） */
-function formatDateTime(value: string): string {
-  const date = new Date(value)
-  return Number.isNaN(date.getTime())
-    ? value
-    : date.toLocaleString(i18n.language === "zh" ? "zh-CN" : "en-US", { hour12: false })
-}
 
 /** 请求体快照美化：合法 JSON 缩进格式化，截断/非 JSON 原样展示 */
 function formatJson(value: string): string {
