@@ -1,3 +1,5 @@
+/* 主题令牌与全局样式：与 apps/portal/src/index.css 保持同步（两个前端应用共用同一套设计令牌，
+   只改一处会造成管理端与门户视觉分叉） */
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -120,15 +122,39 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* 滚动条细美化：细窄 + 低对比度，颜色跟随设计令牌（明暗主题自动适配）。
+       Firefox 的 scrollbar-color 无 hover 态，只取细窄 + 低对比度底色 */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    }
+  /* WebKit/Blink 精细控制：8px、透明轨道、圆角 thumb、hover 时加深 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+    }
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+    }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
     }
   body {
     @apply bg-background text-foreground;
     }
   html {
+    /* 预留滚动条槽位：页面内容长度不同时避免整体横向跳动 */
+    scrollbar-gutter: stable;
     @apply font-sans;
     }
 }
-/* no-scrollbar：隐藏滚动条（shadcn DialogStickyFooter 模式——内容区滚动但无滚动条视觉） */
+/* no-scrollbar：完全隐藏滚动条（局部覆盖全局的细美化规则——类选择器特异性高于 *）。
+   shadcn CLI 组件（combobox / command / sidebar）与 Dialog 内容区依赖它做
+   「可滚动但无滚动条」的视觉，属组件产物契约，不可删除 */
 @utility no-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar {
