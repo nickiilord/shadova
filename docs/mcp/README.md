@@ -78,42 +78,15 @@
 
 ## 4. 工具清单
 
-契约里共 **51 路径 / 78 个操作**。**不做 1:1 映射**——全量注册会撑爆 LLM 的工具上下文，且大量操作 AI 用不上。按"AI 真正能帮上忙"精选 23 个。
+**工具清单以代码为准**：`apps/mcp/src/tools/`（`registry.ts` 定义统一形态与过滤规则，各业务域一个文件）。本节只记录设计决策，不再罗列工具表——避免与实现形成两套信息源。
 
-### 4.1 只读（默认启用，15 个）
+### 4.1 三个设计决策
 
-| 工具 | 内部调用 | 所需权限码 |
-|---|---|---|
-| `list_users` | `GET /api/users` | `system:user:query` |
-| `get_user` | `GET /api/users/{id}` | `system:user:query` |
-| `list_roles` | `GET /api/roles/list` | `system:role:query` |
-| `get_role_menus` | `GET /api/roles/{id}/menus` | `system:role:query` |
-| `get_menu_tree` | `GET /api/menus/tree` | `system:menu:query` |
-| `list_departments` | `GET /api/departments` | `system:dept:query` |
-| `list_dict_types` | `GET /api/dicts/types` | `system:dict:query` |
-| `get_dict_options` | `GET /api/dicts/types/{typeCode}/options` | `system:dict:query` |
-| `list_configs` | `GET /api/configs` | `system:config:query` |
-| `list_sessions` | `GET /api/sessions` | `system:session:query` |
-| `list_login_logs` | `GET /api/logs/login` | `system:log:query` |
-| `list_operation_logs` | `GET /api/logs/operation` | `system:log:query` |
-| `list_announcements` | `GET /api/announcements` | `system:announcement:query` |
-| `get_portal_site` | `GET /api/portal/site` | `portal:site:query` |
-| `list_portal_messages` | `GET /api/portal/messages` | `portal:message:query` |
+1. **精选而非全量映射**：契约有 51 路径 / 78 个操作，全部注册会撑爆 LLM 的工具上下文，且多数操作 AI 用不上。当前实现 23 个（只读 15 + 写入 8）。
+2. **写入默认关闭**：写入工具需 `SHADOVA_ENABLE_WRITE_TOOLS=true` 才注册（见 `registry.ts` 的 `selectTools`）。
+3. **权限码是多对一的**：一个权限码可管多个工具（例如 `system:user:query` 同时对应 `list_users` 与 `get_user`），过滤按权限码整体判断。
 
-### 4.2 写入（需 `SHADOVA_ENABLE_WRITE_TOOLS=true`，8 个）
-
-| 工具 | 内部调用 | 所需权限码 |
-|---|---|---|
-| `create_user` | `POST /api/users` | `system:user:create` |
-| `update_user` | `PATCH /api/users/{id}` | `system:user:update` |
-| `set_user_status` | `PATCH /api/users/{id}`（仅 status） | `system:user:update` |
-| `assign_user_roles` | `PUT /api/users/{id}/roles` | `system:user:assign-role` |
-| `create_role` | `POST /api/roles` | `system:role:create` |
-| `grant_role_menus` | `PUT /api/roles/{id}/menus` | `system:role:assign` |
-| `create_announcement` | `POST /api/announcements` | `system:announcement:create` |
-| `handle_portal_message` | `PATCH /api/portal/messages/{id}` | `portal:message:update` |
-
-### 4.3 明确排除
+### 4.2 明确排除
 
 | 排除项 | 原因 |
 |---|---|
@@ -181,15 +154,17 @@ apps/mcp/
 
 ---
 
-## 7. 分期与工作量
+## 7. 实现状态
 
-| 阶段 | 内容 | 产出 |
-|---|---|---|
-| **P1** | 骨架 + stdio + 只读 15 工具 + 权限感知注册 + 集成测试 | 可在 Claude Desktop / Cursor 里查询管理端数据 |
-| **P2** | Streamable HTTP + Bearer 直传 + 写入 8 工具（默认关） | 可远程接入；AI 可在授权下做常规维护 |
-| **P3** | README 接入章节 + AGENTS.md 结构表 + `docs/mcp/README.md` 收敛为"指向代码" | 对外可用、文档闭环 |
+三阶段均已落地，工具与过滤规则见 `apps/mcp/src/tools/`：
 
-**估**：P1 ≈ 1 天，P2 ≈ 0.5 天，P3 ≈ 0.5 天。
+| 能力 | 落点 |
+|---|---|
+| stdio 传输 + 只读工具 + 权限感知注册 | `src/index.ts` 的 `runStdio`、`src/server.ts` |
+| Streamable HTTP + Bearer 直传 + 写入工具（默认关） | `src/index.ts` 的 `runHttp`、`src/tools/writes.ts` |
+| 工程接入（CI 契约校验、husky 生成物、README 接入章节） | `.github/workflows/ci.yml`、`.husky/pre-commit` |
+
+验证：`pnpm --filter @repo/mcp test` —— 覆盖配置解析（含非法值报错）、工具可见性过滤（权限 × 写入开关）、以及进程内起真实 API 的链路测试。
 
 ---
 

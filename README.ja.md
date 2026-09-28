@@ -82,6 +82,34 @@ pnpm dev
 
 デモ認証情報：`admin / Admin@123`。seed は冪等に再実行でき、このアカウントのパスワードとデモ用連絡先をリセットします。
 
+## AI アシスタント連携（MCP）
+
+リポジトリには MCP サーバー（`apps/mcp`）が同梱されており、管理画面の機能を Claude Desktop、Cursor、Claude Code などの AI クライアントに公開できます。
+
+```bash
+pnpm --filter @repo/mcp build
+```
+
+クライアントの MCP 設定に追加します（`args` はリポジトリの絶対パスに置き換えてください）。
+
+```json
+{
+  "mcpServers": {
+    "shadova": {
+      "command": "node",
+      "args": ["<リポジトリの絶対パス>/apps/mcp/dist/index.js"],
+      "env": {
+        "SHADOVA_API_URL": "http://localhost:3001",
+        "SHADOVA_USERNAME": "admin",
+        "SHADOVA_PASSWORD": "Admin@123"
+      }
+    }
+  }
+}
+```
+
+既定では読み取り専用ツールのみ登録されます。書き込みを有効にするには `SHADOVA_ENABLE_WRITE_TOOLS=true` を明示してください。MCP サーバーは API クライアント専用でデータベースに直接接続しないため、AI の操作も同じ RBAC で判定され操作ログに記録されます。リモート運用と設計上の境界は [docs/mcp/README.md](./docs/mcp/README.md) を参照してください。
+
 ## 機能
 
 - **管理画面**：React 19、Vite、React Router、TanStack Query、Tailwind CSS、shadcn/ui。
