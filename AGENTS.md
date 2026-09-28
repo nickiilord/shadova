@@ -112,6 +112,7 @@ shadova：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React + s
 - `docs/business/README.md` — 业务权威文档（领域模型 / 权限 / 业务规则 / API 清单 / 种子）
 - `docs/database/README.md` — 数据库文档（权限语义速查 + 三方言差异表 + 切库步骤 + MySQL 类型清单）
 - `docs/review/business-rules.md` — 业务 Review 矩阵（每轮专项检查基线）
+- `docs/mcp/README.md` — MCP server 方案（把管理端能力暴露给 AI 助手的设计、边界与分期）
 - `AGENTS.md` — 本文件：仓库规则单一真相源（CLAUDE.md 仅保留一行索引，不维护副本）
 - `.agents/README.md` — skills 骨架规范 + 双目录同步约定（新增/修改 skill 前必读）
 - **skills 清单**：`.agents/skills/`（与 `.claude/skills/` 同步，共 10 个）——入口为 `add-module`（新增业务模块编排）；其余为执行层（add-api-route / add-page / db-schema-change / add-e2e / seed-edit / shadcn-add / switch-database）与质量层（test-writing / pre-commit-check）；触发条件见各 SKILL.md frontmatter
