@@ -198,12 +198,6 @@ API integration テストは専用 SQLite テスト DB を再構築し、開発 
 
 ## コントリビューション
 
-変更を提出する前に、次を実行してください。
+開発ルールと提出前チェックは [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。規約の詳細は [AGENTS.md](./AGENTS.md) が唯一の情報源です。
 
-```bash
-pnpm turbo test
-pnpm turbo build
-pnpm turbo lint
-```
-
-コミットメッセージは [Conventional Commits](https://www.conventionalcommits.org/) に従います。大きな機能を始める前に設計仕様を読み、issue で方針を共有してください。
+コミットメッセージは [Conventional Commits](https://www.conventionalcommits.org/) に従います。大きな機能は、まず issue で方針を共有してください。

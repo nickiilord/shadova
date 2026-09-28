@@ -198,12 +198,6 @@ API 集成测试会重建独立的 SQLite 测试库，不会修改开发数据�
 
 ## 参与贡献
 
-提交改动前请运行：
+开发规范与提交前自检见 [CONTRIBUTING.md](./CONTRIBUTING.md)，规则细节以 [AGENTS.md](./AGENTS.md) 为准。
 
-```bash
-pnpm turbo test
-pnpm turbo build
-pnpm turbo lint
-```
-
-提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/)。开始较大功能前，请先阅读设计文档并在 issue 中说明方案。
+提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/)；改动较大时请先在 issue 中说明方案。

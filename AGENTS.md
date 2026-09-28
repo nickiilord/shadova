@@ -73,6 +73,7 @@ shadova：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React + s
 | `packages/shared` | 权限纯函数 `computeVisibleMenus`（**权限计算的唯一位置**，见 `docs/business/README.md` §3）；权限码注册表 `permission-codes.ts`；门户区块图标白名单 `portal-icons.ts` |
 | `packages/db` | Prisma schema（运行时权威，全字段中文 docstring）+ 幂等种子 `src/seed.ts`（admin/Admin@123、菜单树、ADMIN/GUEST 角色） |
 | `packages/config` | 共享 `tsconfig.base.json` 与 eslint 配置（被各包继承） |
+| `.devcontainer/` | Codespaces 在线试用环境：`setup.sh`（首次创建：生成 .env + 装依赖 + 建 workspace 包 + 建库 + 种子）与 `start.sh`（每次启动后台拉起三个服务），端口转发设为 public；README 的 Codespaces 徽标指向它 |
 | `.agents/skills/` / `.claude/skills/` | agent 技能双目录（跨工具读取前者，Claude Code 只扫描后者）；**两份必须同步提交**；骨架规范见 `.agents/README.md` |
 
 ## 常用命令（根目录执行）

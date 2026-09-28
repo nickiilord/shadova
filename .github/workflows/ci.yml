@@ -68,7 +68,7 @@ jobs:
 
   # 完全按 README「快速开始」执行一次，不复用任何预置产物。
   # quality / e2e 都跑在"已构建、已配置"的环境里，发现不了"文档步骤与代码要求不一致"——
-  # 这个 job 就是那道防线（曾出现 seed 依赖 dist、dev 缺依赖构建两处卡死新用户的问题）。
+  # 这个 job 就是那道防线。
   quickstart:
     name: Quick start (fresh-clone smoke test)
     runs-on: ubuntu-latest

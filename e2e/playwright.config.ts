@@ -39,7 +39,7 @@ export default defineConfig({
   ],
   // 三个服务：api（e2e 库）+ web + portal（vite dev）。
   // reuseExistingServer 强制 false：复用本地已运行的 dev server 会让测试连上**开发库**（dev.db）
-  // 并写入测试数据，污染开发数据且跨用例重名冲突（实测：反复跑时创建类用例成片失败）。
+  // 并写入测试数据，污染开发数据、跨用例重名冲突。
   // 跑 E2E 前请先停掉 pnpm dev —— 端口被占用时 Playwright 会显式报冲突，而不是静默写脏开发库。
   webServer: [
     {

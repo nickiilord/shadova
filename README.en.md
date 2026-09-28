@@ -198,12 +198,6 @@ API integration tests rebuild a dedicated SQLite test database and do not modify
 
 ## Contributing
 
-Run these checks before submitting a change:
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the development rules and the pre-submit checklist; [AGENTS.md](./AGENTS.md) is the single source of truth for repository conventions.
 
-```bash
-pnpm turbo test
-pnpm turbo build
-pnpm turbo lint
-```
-
-Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/). For larger features, read the design specification and describe the approach in an issue first.
+Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/). For larger features, describe the approach in an issue first.
