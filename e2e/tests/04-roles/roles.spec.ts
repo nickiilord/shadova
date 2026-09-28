@@ -62,7 +62,9 @@ test.describe("角色管理", () => {
     await row.getByRole("button", { name: "分配权限" }).click()
     const dialog = adminPage.getByRole("dialog")
     await dialog.getByRole("checkbox", { name: "数据字典" }).click()
-    await dialog.getByRole("button", { name: "保存" }).click()
+    // exact 必需：菜单授权树把权限节点也渲染为按钮（可访问名形如「保存站点配置 BUTTON」），
+    // 非精确匹配会连同它们一起命中（strict mode violation）
+    await dialog.getByRole("button", { name: "保存", exact: true }).click()
     await expect(dialog).toBeHidden()
 
     // 验证：新角色用户（API 创建）登录后 navTree 含数据字典，但无用户管理
