@@ -7,5 +7,6 @@ export default {
     "pnpm --filter @repo/api generate:openapi",
     "pnpm --filter @repo/api generate:types",
     "pnpm --filter @repo/portal generate:types",
+    "pnpm --filter @repo/mcp generate:types",
   ],
 }

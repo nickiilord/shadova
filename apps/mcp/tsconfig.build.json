@@ -1,0 +1,12 @@
+{
+  "extends": "@repo/config/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "rootDir": "src",
+    "outDir": "dist",
+    // 同 tsconfig.json：MCP 官方 SDK 的传输回调声明与 exactOptionalPropertyTypes 不兼容
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["src"]
+}

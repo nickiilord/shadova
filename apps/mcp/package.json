@@ -1,0 +1,32 @@
+{
+  "name": "@repo/mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "shadova-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "lint": "eslint src test",
+    "typecheck": "tsc --noEmit",
+    "generate:types": "openapi-typescript ../api/openapi.json -o src/api/schema.d.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@repo/shared": "workspace:*",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@repo/config": "workspace:*",
+    "@types/node": "^26.1.2",
+    "openapi-typescript": "^7.4.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.10"
+  }
+}
