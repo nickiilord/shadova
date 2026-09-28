@@ -365,7 +365,7 @@ export default function AppLayout(): JSX.Element {
       </Sidebar>
       {/* h-svh + overflow-hidden：把滚动交给内层 main，顶栏（shrink-0）与侧边栏始终固定。
           缺这层高度约束时内容会把 SidebarInset 撑高，flex-1 不再产生内部滚动、退化成整页滚动，
-          顶栏随之下移被滚走（实测滚动 600px 后 headerTop 由 0 变 -600） */}
+          顶栏随页面一起滚走 */}
       <SidebarInset className="h-svh overflow-hidden">
         <header className="flex h-14 shrink-0 items-center gap-1.5 border-b px-4">
           <SidebarTrigger className="-ml-1" />

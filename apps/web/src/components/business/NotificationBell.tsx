@@ -36,7 +36,7 @@ function findNotificationPath(nodes: components["schemas"]["MenuNode"][]): strin
   return null
 }
 
-/** 时间展示跟随界面语言（同各管理页 formatDateTime 惯例） */
+/** 短格式（月日时分）：适合顶栏预览；与 lib/datetime 的完整时间列格式分工不同，故不复用 */
 function formatTime(value: string): string {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return ""

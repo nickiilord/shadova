@@ -1,9 +1,9 @@
 import i18n from "@/localization/i18n"
 
 /**
- * 时间展示（唯一实现）：跟随界面语言（zh-CN / en-US，24 小时制），非法值显示 "-"。
- * 此前 log / session / notifications 三个页面各有一份副本且兜底行为不一致（前者原样返回非法值），
- * announcement 另有不跟随语言的内联写法——统一收敛到这里。
+ * 时间列的完整展示（唯一实现）：跟随界面语言（zh-CN / en-US，24 小时制），非法值显示 "-"。
+ * 管理端时间列一律走这里，不要在页面内联 toLocaleString —— 那会让各页兜底行为分叉。
+ * （NotificationBell 的「月日时分」短格式是顶栏预览用的另一种形态，不复用此处。）
  */
 export function formatDateTime(value: string): string {
   const date = new Date(value)

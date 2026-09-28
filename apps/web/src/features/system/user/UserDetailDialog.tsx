@@ -2,6 +2,7 @@ import type { JSX } from "react"
 import { useTranslation } from "react-i18next"
 import type { UserListItem } from "./useUsers"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { formatDateTime } from "@/lib/datetime"
 
 export function UserDetailDialog({ user, onClose }: { user: UserListItem; onClose: () => void }): JSX.Element {
   const { t } = useTranslation("users")
@@ -11,7 +12,7 @@ export function UserDetailDialog({ user, onClose }: { user: UserListItem; onClos
     [t("department"), user.department?.nameZh ?? "-"],
     [t("status"), user.status ? t("enabled") : t("disabled")],
     [t("roles"), user.roles.map((role) => role.nameZh).join(", ") || "-"],
-    [t("createdAt"), new Date(user.createdAt).toLocaleString()],
+    [t("createdAt"), formatDateTime(user.createdAt)],
   ]
   return <Dialog defaultOpen onOpenChange={(open) => { if (!open) onClose() }}><DialogContent><DialogHeader><DialogTitle>{t("detail")}</DialogTitle><DialogDescription>{user.username}</DialogDescription></DialogHeader><dl className="grid gap-3 text-sm">{rows.map(([label, value]) => <div key={label} className="grid grid-cols-[110px_1fr] gap-3"><dt className="text-muted-foreground">{label}</dt><dd>{value}</dd></div>)}</dl></DialogContent></Dialog>
 }
