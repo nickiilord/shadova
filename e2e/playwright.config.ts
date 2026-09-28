@@ -37,13 +37,16 @@ export default defineConfig({
       use: { baseURL: "http://localhost:5174" },
     },
   ],
-  // 两个服务：api（e2e 库）+ web（vite dev）；reuseExistingServer 允许复用本地已起的服务
+  // 三个服务：api（e2e 库）+ web + portal（vite dev）。
+  // reuseExistingServer 强制 false：复用本地已运行的 dev server 会让测试连上**开发库**（dev.db）
+  // 并写入测试数据，污染开发数据且跨用例重名冲突（实测：反复跑时创建类用例成片失败）。
+  // 跑 E2E 前请先停掉 pnpm dev —— 端口被占用时 Playwright 会显式报冲突，而不是静默写脏开发库。
   webServer: [
     {
       command: "pnpm --filter @repo/shared build && pnpm --filter @repo/db build && pnpm exec tsx src/index.ts",
       cwd: "../apps/api",
       url: `${E2E_API_URL}/api/health`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 60_000,
       env: {
         DATABASE_URL: E2E_DB_URL,
@@ -55,7 +58,7 @@ export default defineConfig({
       command: "pnpm exec vite --port 5173 --strictPort",
       cwd: "../apps/web",
       url: "http://localhost:5173",
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 60_000,
       // apps/web/.env 被 gitignore，CI 检出后不存在；直接注入避免 %VITE_APP_NAME% 未替换警告
       env: {
@@ -66,7 +69,7 @@ export default defineConfig({
       command: "pnpm exec vite --port 5174 --strictPort",
       cwd: "../apps/portal",
       url: "http://localhost:5174",
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 60_000,
     },
   ],
