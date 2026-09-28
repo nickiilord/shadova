@@ -1,4 +1,5 @@
 import { prisma } from "@repo/db"
+import type { Prisma } from "@repo/db"
 import type { PortalHome, PortalSite } from "../lib/schemas.js"
 
 /**
@@ -58,11 +59,33 @@ export async function readPortalSite(): Promise<PortalSite> {
  */
 export type PortalSitePatch = { [K in keyof PortalSite]?: PortalSite[K] | undefined }
 
-/** 保存站点配置：读当前值 → 合并补丁 → 写回完整行（单行 upsert，重复保存不产生第二行） */
+/**
+ * 保存站点配置：UPDATE 只包含「已提交」的字段——未提交字段不参与 SQL，避免并发保存互相覆盖
+ * （若写回读到的完整快照，两个管理员同时改不同字段时，后写者会覆盖先写者的改动）。
+ * 单行 upsert 保证不产生第二行。
+ */
 export async function savePortalSite(fields: PortalSitePatch): Promise<PortalSite> {
+  // 逐字段收集已提交项：Prisma 输入类型在 exactOptionalPropertyTypes 下不接受值为 undefined 的属性
+  const update: Prisma.PortalConfigUpdateInput = {}
+  if (fields.siteName !== undefined) update.siteName = fields.siteName
+  if (fields.siteTagline !== undefined) update.siteTagline = fields.siteTagline
+  if (fields.contactEmail !== undefined) update.contactEmail = fields.contactEmail
+  if (fields.contactPhone !== undefined) update.contactPhone = fields.contactPhone
+  if (fields.whatsappNumber !== undefined) update.whatsappNumber = fields.whatsappNumber
+  if (fields.facebookUrl !== undefined) update.facebookUrl = fields.facebookUrl
+  if (fields.instagramUrl !== undefined) update.instagramUrl = fields.instagramUrl
+  if (fields.youtubeUrl !== undefined) update.youtubeUrl = fields.youtubeUrl
+  if (fields.telegramUrl !== undefined) update.telegramUrl = fields.telegramUrl
+  if (fields.privacyPolicyUrl !== undefined) update.privacyPolicyUrl = fields.privacyPolicyUrl
+  if (fields.footerText !== undefined) update.footerText = fields.footerText
+  if (fields.seoTitle !== undefined) update.seoTitle = fields.seoTitle
+  if (fields.seoDescription !== undefined) update.seoDescription = fields.seoDescription
+  if (fields.seoKeywords !== undefined) update.seoKeywords = fields.seoKeywords
+
+  // create 分支只在首行不存在时触发（首次保存，无并发场景）：以默认值补全未提交字段
   const current = await readPortalSite()
   // 合并必须用 `=== undefined` 判断而非 `??`：null 是「显式清空」的合法值，不能被默认值顶掉
-  const next: PortalSite = {
+  const merged: PortalSite = {
     siteName: fields.siteName ?? current.siteName,
     siteTagline: fields.siteTagline === undefined ? current.siteTagline : fields.siteTagline,
     contactEmail: fields.contactEmail === undefined ? current.contactEmail : fields.contactEmail,
@@ -78,8 +101,14 @@ export async function savePortalSite(fields: PortalSitePatch): Promise<PortalSit
     seoDescription: fields.seoDescription === undefined ? current.seoDescription : fields.seoDescription,
     seoKeywords: fields.seoKeywords === undefined ? current.seoKeywords : fields.seoKeywords,
   }
-  await prisma.portalConfig.upsert({ where: { id: PORTAL_CONFIG_ID }, update: next, create: next })
-  return next
+
+  await prisma.portalConfig.upsert({
+    where: { id: PORTAL_CONFIG_ID },
+    update,
+    create: merged,
+  })
+  // 重读而非返回 merged：并发写入下只有库里的值才准确
+  return readPortalSite()
 }
 
 /**
