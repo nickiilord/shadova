@@ -12,7 +12,7 @@
     "lint": "turbo run lint",
     "lint:e2e": "eslint e2e",
     "test": "turbo run test",
-    "typecheck": "pnpm --filter @repo/api typecheck && pnpm --filter @repo/web typecheck && pnpm --filter @repo/portal typecheck && pnpm typecheck:e2e",
+    "typecheck": "pnpm --filter @repo/api typecheck && pnpm --filter @repo/web typecheck && pnpm --filter @repo/portal typecheck && pnpm --filter @repo/mcp typecheck && pnpm typecheck:e2e",
     "typecheck:e2e": "tsc -p e2e/tsconfig.json --noEmit",
     "e2e": "playwright test --config e2e/playwright.config.ts",
     "prepare": "husky"

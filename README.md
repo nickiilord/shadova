@@ -82,6 +82,34 @@ pnpm dev
 
 默认演示账号：`admin / Admin@123`。种子脚本可幂等重跑，并会重置该账号的密码和演示联系方式。
 
+## 接入 AI 助手（MCP）
+
+仓库内置 MCP server（`apps/mcp`），可把管理端能力接给 Claude Desktop、Cursor、Claude Code 等 AI 客户端。
+
+```bash
+pnpm --filter @repo/mcp build
+```
+
+在客户端的 MCP 配置中加入（`args` 换成你的仓库绝对路径）：
+
+```json
+{
+  "mcpServers": {
+    "shadova": {
+      "command": "node",
+      "args": ["<仓库绝对路径>/apps/mcp/dist/index.js"],
+      "env": {
+        "SHADOVA_API_URL": "http://localhost:3001",
+        "SHADOVA_USERNAME": "admin",
+        "SHADOVA_PASSWORD": "Admin@123"
+      }
+    }
+  }
+}
+```
+
+默认只注册只读工具；写入能力需显式开启 `SHADOVA_ENABLE_WRITE_TOOLS=true`。MCP 只做 API 客户端、不直连数据库，因此 AI 的每次操作都受同一套 RBAC 约束并记入操作日志。远程部署与设计边界见 [docs/mcp/README.md](./docs/mcp/README.md)。
+
 ## 功能
 
 - **管理端**：React 19、Vite、React Router、TanStack Query、Tailwind CSS、shadcn/ui。

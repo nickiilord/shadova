@@ -70,6 +70,7 @@ shadova：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React + s
 | `apps/api` | Hono 后端。路由 `src/routes/*.ts`（auth / otp / me / users / roles / menus）；认证与权限中间件 `src/middleware/{auth,clerk-auth}.ts`；动态码发送入口 `src/lib/otp-sender.ts`（OtpSender 接口 + DevOtpSender）；OpenAPI 契约生成物 `apps/api/openapi.json` |
 | `apps/web` | 管理端：Vite + React 19 + react-router 7 + TanStack Query。页面为约定式 `src/features/<component>/page.tsx`；动态路由与守卫 `src/router/{generateRoutes,guards}.tsx`；登录抽象 `src/auth/`（JWT / Clerk 两个 Provider 实现，经 `src/auth/AuthProvider.tsx` 统一）；`src/components/ui/` 是 shadcn 组件（CLI 安装，勿手写）；`src/api/schema.d.ts` 是 openapi-typescript 生成物 |
 | `apps/portal` | 公开门户（免登录，5174）：单页首页，不引入 react-router；数据来自公开聚合接口 `/api/portal/home` 与留言提交 `/api/portal/messages`；**必须经 Vite 代理 / nginx 反代访问 `/api`**（后端未启用 CORS，跨端口直连会被浏览器拦截）；`src/components/ui/` 同为 shadcn CLI 产物 |
+| `apps/mcp` | MCP server（把管理端能力接给 AI 助手，设计与边界见 `docs/mcp/README.md`）：支持 stdio 与 Streamable HTTP 两种传输；**只做 `apps/api` 的客户端，不直连数据库**，故权限裁决与操作日志完全复用后端链路；工具清单在 `src/tools/`（注册表 `registry.ts`），按 `/auth/me` 的权限码与 `SHADOVA_ENABLE_WRITE_TOOLS` 决定注册哪些 |
 | `packages/shared` | 权限纯函数 `computeVisibleMenus`（**权限计算的唯一位置**，见 `docs/business/README.md` §3）；权限码注册表 `permission-codes.ts`；门户区块图标白名单 `portal-icons.ts` |
 | `packages/db` | Prisma schema（运行时权威，全字段中文 docstring）+ 幂等种子 `src/seed.ts`（admin/Admin@123、菜单树、ADMIN/GUEST 角色） |
 | `packages/config` | 共享 `tsconfig.base.json` 与 eslint 配置（被各包继承） |
@@ -81,6 +82,7 @@ shadova：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React + s
 | 命令 | 说明 |
 |---|---|
 | `pnpm dev` | 同时起 web（5173）、portal（5174）与 api（3001）；两个前端的 `/api` 均由 Vite 代理到 3001 |
+| `pnpm --filter @repo/mcp dev` | 启动 MCP server（默认 stdio，由 AI 客户端通过 command 拉起，不随 `pnpm dev` 一起跑）；`SHADOVA_TRANSPORT=http` 切换为远程模式 |
 | `pnpm turbo test` | shared 单元 + api 集成（自动重建 SQLite 测试库）+ web RTL |
 | `pnpm turbo build` / `pnpm turbo lint` | 全量构建 / 全量 lint |
 | `pnpm --filter @repo/db seed` | 幂等种子；**默认不重置** admin 凭据，加 `-- --reset-admin`（或 `seed:reset`）恢复演示口令与联系方式 |
@@ -89,7 +91,7 @@ shadova：RBAC 管理端 monorepo（Hono + zod-openapi 后端 / Vite + React + s
 
 ## 规范要点
 
-- **严格 TS**：`packages/config/tsconfig.base.json`（strict、noUncheckedIndexedAccess、exactOptionalPropertyTypes、verbatimModuleSyntax、noUnusedLocals/Parameters、noFallthroughCasesInSwitch 等）。唯一放宽：两个前端应用（web / portal）的 `exactOptionalPropertyTypes: false`（shadcn 上游组件产物不兼容，原因见各自 `tsconfig.json` 注释——勿扩大到后端与 packages）。
+- **严格 TS**：`packages/config/tsconfig.base.json`（strict、noUncheckedIndexedAccess、exactOptionalPropertyTypes、verbatimModuleSyntax、noUnusedLocals/Parameters、noFallthroughCasesInSwitch 等）。唯一放宽：三个应用的 `exactOptionalPropertyTypes: false`（web / portal 因 shadcn 上游组件产物不兼容，mcp 因 MCP 官方 SDK 用 getter/setter 声明传输回调；原因见各自 `tsconfig.json` 注释——勿扩大到后端与 packages）。
 - **shadcn 严格 CLI**：组件一律 `npx shadcn@latest add <component>` 安装，**禁止手写/复制粘贴组件源码**；升级/覆盖走 `--dry-run` → `--diff` 合并。eslint ignore 面（`packages/config/eslint.config.ts`，按 `apps/*` 通配）= `src/components/ui/` 全部 + `src/hooks/use-mobile.ts` + `src/api/schema.d.ts`。新 UI 需求先 `npx shadcn@latest search` 官方/社区 registry。
 - **权限码规范**：`模块:资源:操作`（如 `system:user:create`）。新增权限三处联动：种子菜单 BUTTON 行（或菜单管理页在线创建）+ 后端路由 `requirePermission(code)` 挂码 + 前端 `<Permission code="...">` 包裹。计算规则唯一在 `packages/shared`（纯严格交集，无超管例外）。
 - **权限码单一来源**：生产代码中的权限常量统一引用 `packages/shared/src/permission-codes.ts` 导出的 `PERMISSIONS`；禁止在 API 路由或 Web 页面重新定义同名字符串。注册表的一致性由 `packages/shared/test/permission-codes.test.ts` 守护。测试夹具和历史业务样例可保留字面量，但不得作为生产权限常量来源。

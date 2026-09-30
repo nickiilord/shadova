@@ -1,5 +1,5 @@
 # 刷新 OpenAPI 契约并暂存生成物：lint-staged 仅 re-add 匹配任务的已暂存文件（不会暂存 openapi.json/schema.d.ts），
 # 此处显式 git add 保证契约与 API 源码变更同批入库；生成幂等，无关提交成本 ~1s
-pnpm --filter @repo/api generate:openapi && pnpm --filter @repo/api generate:types && pnpm --filter @repo/portal generate:types
-git add apps/api/openapi.json apps/web/src/api/schema.d.ts apps/portal/src/api/schema.d.ts
+pnpm --filter @repo/api generate:openapi && pnpm --filter @repo/api generate:types && pnpm --filter @repo/portal generate:types && pnpm --filter @repo/mcp generate:types
+git add apps/api/openapi.json apps/web/src/api/schema.d.ts apps/portal/src/api/schema.d.ts apps/mcp/src/api/schema.d.ts
 npx lint-staged

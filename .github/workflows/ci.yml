@@ -52,7 +52,8 @@ jobs:
           pnpm --filter @repo/api generate:openapi
           pnpm --filter @repo/api generate:types
           pnpm --filter @repo/portal generate:types
-          git diff --exit-code -- apps/api/openapi.json apps/web/src/api/schema.d.ts apps/portal/src/api/schema.d.ts
+          pnpm --filter @repo/mcp generate:types
+          git diff --exit-code -- apps/api/openapi.json apps/web/src/api/schema.d.ts apps/portal/src/api/schema.d.ts apps/mcp/src/api/schema.d.ts
 
       - name: Lint
         run: pnpm turbo lint && pnpm lint:e2e

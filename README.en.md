@@ -82,6 +82,34 @@ Open <http://localhost:5173> (admin) and <http://localhost:5174> (public portal)
 
 Demo credentials: `admin / Admin@123`. The idempotent seed can be rerun and resets this account's password and demo contact details.
 
+## Connect an AI Assistant (MCP)
+
+The repo ships an MCP server (`apps/mcp`) that exposes the admin capabilities to AI clients such as Claude Desktop, Cursor, or Claude Code.
+
+```bash
+pnpm --filter @repo/mcp build
+```
+
+Add it to your client's MCP config (point `args` at your absolute repo path):
+
+```json
+{
+  "mcpServers": {
+    "shadova": {
+      "command": "node",
+      "args": ["<absolute-repo-path>/apps/mcp/dist/index.js"],
+      "env": {
+        "SHADOVA_API_URL": "http://localhost:3001",
+        "SHADOVA_USERNAME": "admin",
+        "SHADOVA_PASSWORD": "Admin@123"
+      }
+    }
+  }
+}
+```
+
+Only read-only tools are registered by default; enable writes explicitly with `SHADOVA_ENABLE_WRITE_TOOLS=true`. The server is a pure API client — it never touches the database directly — so every AI action goes through the same RBAC rules and lands in the operation log. Remote deployment and design boundaries: [docs/mcp/README.md](./docs/mcp/README.md).
+
 ## Features
 
 - **Admin app**: React 19, Vite, React Router, TanStack Query, Tailwind CSS, and shadcn/ui.
